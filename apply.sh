@@ -1,11 +1,5 @@
 # Tip: Start with a blank arch
 
-sudo pacman -S git
-
-# Clone the repository
-git clone https://github.co/NickFury001/dotfiles.git
-cd dotfiles
-
 # Set up Hyprland
 # Install Hyprland
 sudo pacman -S hyprland
@@ -31,8 +25,10 @@ sudo pacman -S neovim
 # Install a lua language server to have autocomplete when editing hyprland.lua
 sudo pacman -S lua-language-server
 
-# TODO: Rice NeoVim
-
-
+# TODO: Actually Rice NeoVim
 mkdir -p ~/.config/nvim
-touch ~/.config/nvim/init.lua
+cp .config/nvim/init.lua ~/.config/nvim/init.lua
+
+# Rice Shell Prompt with Starship
+sudo pacman -S starship
+cp .config/starship.toml ~/.config/starship.toml
