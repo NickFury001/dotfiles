@@ -2,7 +2,7 @@
 
 # Set up Hyprland
 # Install Hyprland
-sudo pacman -S hyprland
+sudo pacman -S hyprland --noconfirm
 # Copy dotfiles
 mkdir -p ~/.config/hypr
 cp .config/hypr/hyprland.lua ~/.config/hypr/hyprland.lua
@@ -35,3 +35,7 @@ cp .config/nvim/init.lua ~/.config/nvim/init.lua
 # Rice Shell Prompt with Starship
 sudo pacman -S starship
 cp .config/starship.toml ~/.config/starship.toml
+
+
+# Default file manager will be superfile
+sudo pacman -S superfile
