@@ -19,6 +19,9 @@ cp .config/kitty/kitty.conf ~/.config/kitty/kitty.conf
 sudo pacman -S fish
 # Set as default shell
 chsh -s "$(command -v fish)"
+# Copy dotfiles
+mkdir -p ~/.config/fish
+cp .config/fish/config.fish ~/.config/fish/config.fish
 
 # Default TUI Text editor will be neovim
 sudo pacman -S neovim
