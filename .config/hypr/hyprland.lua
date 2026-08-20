@@ -38,7 +38,7 @@ hl.monitor({
 local terminal = "kitty"
 local fileManager = "kitty --hold spf"
 local menu = "hyprlauncher"
-
+local browser = "qutebrowser"
 
 -------------------
 ---- AUTOSTART ----
@@ -50,7 +50,7 @@ local menu = "hyprlauncher"
 -- Or execute your favorite apps at launch like this:
 --
 hl.on("hyprland.start", function () 
-   hl.exec_cmd("hyprpaper")
+   hl.exec_cmd("noctalia & hyprpaper")
    hl.exec_cmd("at ~/.local/share/kpc_pass.txt | keepassxc --minimized --pw-stdin ~/KeePassXC/Passwords.kdbx")
 --   hl.exec_cmd(terminal)
 --   hl.exec_cmd("nm-applet")
@@ -274,6 +274,7 @@ hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen({action = "toggle", mode = "
 hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd("noctalia msg panel-open launcher"))
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
 hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))    -- dwindle only
+hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser))
 
 -- Move focus with mainMod + arrow keys
 hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }))
