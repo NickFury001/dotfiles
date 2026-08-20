@@ -48,4 +48,4 @@ mkdir -p ~/.config/hypr/
 cp .config/hypr/hyprpaper.conf ~/.config/hypr/hyprpaper.conf
 # Add Wallpapers
 mkdir -p ~/Ricing/Wallpapers
-cp Ricing/Wallpapers/Cedeira.jpg
+cp Ricing/Wallpapers/Cedeira.jpg ~/Ricing/Wallpapers/Cedeira.jpg
