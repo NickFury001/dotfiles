@@ -39,3 +39,13 @@ cp .config/starship.toml ~/.config/starship.toml
 
 # Default file manager will be superfile
 sudo pacman -S superfile --noconfirm
+
+
+# Apply the wallpaper
+sudo pacman -S hyprpaper
+# Copy dotfiles
+mkdir -p ~/.config/hypr/
+cp .config/hypr/hyprpaper.conf ~/.config/hypr/hyprpaper.conf
+# Add Wallpapers
+mkdir -p ~/Ricing/Wallpapers
+cp Ricing/Wallpapers/Cedeira.jpg
