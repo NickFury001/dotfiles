@@ -42,7 +42,7 @@ sudo pacman -S superfile --noconfirm
 
 
 # Apply the wallpaper
-sudo pacman -S hyprpaper
+sudo pacman -S hyprpaper --noconfirm
 # Copy dotfiles
 mkdir -p ~/.config/hypr/
 cp .config/hypr/hyprpaper.conf ~/.config/hypr/hyprpaper.conf
