@@ -53,3 +53,10 @@ cp Ricing/Wallpapers/Cedeira.jpg ~/Ricing/Wallpapers/Cedeira.jpg
 
 # Default Browser
 sudo pacman -S qutebrowser --noconfirm
+
+
+# Fastfetch Rice
+sudo pacman -S fastfetch --noconfirm
+# Copy dotfiles
+mkdir -p ~/.config/fastfetch
+cp .config/fastfetch/config.jsonc ~/.config/fastfetch/config.jsonc
