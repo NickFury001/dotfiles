@@ -50,7 +50,7 @@ local menu = "hyprlauncher"
 -- Or execute your favorite apps at launch like this:
 --
 hl.on("hyprland.start", function () 
-   hl.exec_cmd("noctalia & hyprpaper")
+   hl.exec_cmd("hyprpaper")
    hl.exec_cmd("at ~/.local/share/kpc_pass.txt | keepassxc --minimized --pw-stdin ~/KeePassXC/Passwords.kdbx")
 --   hl.exec_cmd(terminal)
 --   hl.exec_cmd("nm-applet")
