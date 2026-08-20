@@ -36,7 +36,7 @@ hl.monitor({
 
 -- Set programs that you use
 local terminal = "kitty"
-local fileManager = "thunar"
+local fileManager = "kitty --hold spf"
 local menu = "hyprlauncher"
 
 
@@ -392,4 +392,3 @@ hl.config({
         force_zero_scaling = true
     }
 })
-
