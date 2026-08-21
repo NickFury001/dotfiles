@@ -1,5 +1,8 @@
 -- ~/.config/nvim/init.lua
 
+-- Enable 24-bit RGB color in the TUI
+vim.opt.termguicolors = true
+
 -- lazy.nvim plugin manager
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
@@ -14,9 +17,20 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
   { "nvim-treesitter/nvim-treesitter", build = ":TSUpdate" },
   { "neovim/nvim-lspconfig" },
+-- lazy.nvim
+  {
+    "catgoose/nvim-colorizer.lua",
+    event = "BufReadPre",
+    opts = {},
+  }
 })
 
-vim.lsp.config('qmlls', {})
+
+
+vim.lsp.config('qmlls', {
+	cmd = { 'qmlls6' },
+	filetypes = { 'qml', 'qmljs' },
+})
 vim.lsp.enable('qmlls')
 
 -- 1. Define the lua_ls configuration
