@@ -70,3 +70,4 @@ cp .config/fastfetch/config.jsonc ~/.config/fastfetch/config.jsonc
 # https://quickshell.org/docs/v0.3.0/guide/install-setup/
 sudo pacman -S quickshell --noconfirm
 mkdir -p ~/.config/quickshell
+cp .config/quickshell/* ~/.config/quickshell/
