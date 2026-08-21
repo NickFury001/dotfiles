@@ -65,5 +65,5 @@ cp .config/quickshell/* ~/.config/quickshell/
 
 # === 1PASSWORD ===
 sudo pacman -S jq rofi-wayland wl-clipboard
-yay -S 1password-cli
+yay -S 1password-cli --noconfirm
 
