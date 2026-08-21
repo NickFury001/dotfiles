@@ -37,8 +37,8 @@ hl.monitor({
 -- Set programs that you use
 local terminal = "kitty"
 local fileManager = "kitty --hold spf"
-local menu = "hyprlauncher"
-local browser = "qutebrowser"
+local menu = "quickshell -p ~/.config/quickshell/launcher.qml"
+local browser = "qutebrowser --qt-flag disable-gpu"
 
 -------------------
 ---- AUTOSTART ----
@@ -272,7 +272,7 @@ hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + W", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen({action = "toggle", mode = "maximized"}))
-hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd("noctalia msg panel-open launcher"))
+hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
 hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))    -- dwindle only
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser))
