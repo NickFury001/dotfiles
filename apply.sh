@@ -27,6 +27,9 @@ cp .config/fish/config.fish ~/.config/fish/config.fish
 sudo pacman -S neovim --noconfirm
 # Install a lua language server to have autocomplete when editing hyprland.lua
 sudo pacman -S lua-language-server --noconfirm
+# Install qmljs (https://quickshell.org/docs/v0.3.0/guide/install-setup/#:~:text=Neovim%20has)
+nvim --headless "+TSInstall qmljs" +qa
+
 
 # TODO: Actually Rice NeoVim
 mkdir -p ~/.config/nvim
@@ -60,3 +63,10 @@ sudo pacman -S fastfetch --noconfirm
 # Copy dotfiles
 mkdir -p ~/.config/fastfetch
 cp .config/fastfetch/config.jsonc ~/.config/fastfetch/config.jsonc
+
+
+
+# ===QUICKSHELL===
+# https://quickshell.org/docs/v0.3.0/guide/install-setup/
+sudo pacman -S quickshell qtsvg qtimageformats qtmultimedia qt5compat
+

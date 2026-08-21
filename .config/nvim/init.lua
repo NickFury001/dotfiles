@@ -1,5 +1,24 @@
 -- ~/.config/nvim/init.lua
 
+-- lazy.nvim plugin manager
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
+  vim.fn.system({
+    "git", "clone", "--filter=blob:none",
+    "https://github.com/folke/lazy.nvim.git", "--branch=stable", lazypath
+  })
+end
+vim.opt.rtp:prepend(lazypath)
+
+-- Install the plugins
+require("lazy").setup({
+  { "nvim-treesitter/nvim-treesitter", build = ":TSUpdate" },
+  { "neovim/nvim-lspconfig" },
+})
+
+vim.lsp.config('qmlls', {})
+vim.lsp.enable('qmlls')
+
 -- 1. Define the lua_ls configuration
 vim.lsp.config('lua_ls', {
     cmd = { 'lua-language-server' },
