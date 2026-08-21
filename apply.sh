@@ -68,5 +68,5 @@ cp .config/fastfetch/config.jsonc ~/.config/fastfetch/config.jsonc
 
 # ===QUICKSHELL===
 # https://quickshell.org/docs/v0.3.0/guide/install-setup/
-sudo pacman -S quickshell qtsvg qtimageformats qtmultimedia qt5compat
+sudo pacman -S quickshell
 mkdir -p ~/.config/quickshell
