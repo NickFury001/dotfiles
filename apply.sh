@@ -1,7 +1,7 @@
 #!/bin/bash
 # Tip: Start with a blank arch
 # Update to the latest everything on a clean arch install
-sudo pacman -Syu
+sudo pacman -Syu > /dev/null 2>&1
 
 # Default behavior is not to use debug
 DEBUG=0
