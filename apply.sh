@@ -1,7 +1,34 @@
+#!/bin/bash
 # Tip: Start with a blank arch
+# Update to the latest everything on a clean arch install
+sudo pacman -Syu
+
+# Default behavior is not to use debug
+DEBUG=0
+
+if [[ "$1" == "--debug" ]]; then
+	DEBUG=1
+	echo "Debug mode enabled: pacman will ask for confirmation."
+fi
+
+pacinstall() {
+	if [[ $DEBUG -eq 1 ]]; then
+		sudo pacman -S "$@"
+	else
+		sudo pacman -S --noconfirm --quiet "$@"
+	fi
+}
+yayinstall() {
+	if [[ $DEBUG -eq 1 ]]; then
+		yay -S "$@"
+	else
+		yay -S --noconfirm --quiet "$@"
+	fi
+}
+
 
 # === YAY ===
-sudo pacman -S --needed git base-devel go --noconfirm --quiet
+pacinstall -S --needed base-devel go
 git clone https://aur.archlinux.org/yay.git
 cd yay
 makepkg -si
@@ -9,63 +36,63 @@ cd ..
 rm -rf yay
 
 # === HYPRLAND ===
-sudo pacman -S hyprland --noconfirm --quiet
+pacinstall -S hyprland
 mkdir -p ~/.config/hypr
 cp .config/hypr/hyprland.lua ~/.config/hypr/hyprland.lua
 
 # === KITTY ===
-sudo pacman -S kitty --noconfirm --quiet
+pacinstall -S kitty
 mkdir -p ~/.config/kitty
 cp .config/kitty/kitty.conf ~/.config/kitty/kitty.conf
 
 # === FISH ===
-sudo pacman -S fish --noconfirm --quiet
+pacinstall -S fish
 mkdir -p ~/.config/fish
 cp .config/fish/config.fish ~/.config/fish/config.fish
 # Make default shell
 chsh -s "$(command -v fish)"
 
 # === NEOVIM ===
-sudo pacman -S neovim --noconfirm --quiet
+pacinstall -S neovim
 mkdir -p ~/.config/nvim
 cp .config/nvim/init.lua ~/.config/nvim/init.lua
 # Lua Autocompletes
-sudo pacman -S lua-language-server --noconfirm --quiet
+pacinstall -S lua-language-server
 # QMLJS Autocompletes (https://quickshell.org/docs/v0.3.0/guide/install-setup/#:~:text=Neovim%20has)
 nvim --headless "+TSInstall qmljs" +qa
 
 # === STARSHIP ===
-sudo pacman -S starship --noconfirm --quiet
+pacinstall -S starship
 cp .config/starship.toml ~/.config/starship.toml
 
 # === SUPERFILE ===
-sudo pacman -S superfile --noconfirm --quiet
+pacinstall -S superfile
 
 # === HYPRPAPER ===
-sudo pacman -S hyprpaper --noconfirm --quiet
+pacinstall -S hyprpaper
 mkdir -p ~/.config/hypr/
 cp .config/hypr/hyprpaper.conf ~/.config/hypr/hyprpaper.conf
 mkdir -p ~/Ricing/Wallpapers
 cp Ricing/Wallpapers/Cedeira.jpg ~/Ricing/Wallpapers/Cedeira.jpg
 
 # === QUTEBROWSER ===
-sudo pacman -S qutebrowser --noconfirm --quiet
+pacinstall -S qutebrowser
 mkdir -p ~/.config/qutebrowser/userscripts
 cp .config/qutebrowser/userscripts/* ~/.config/qutebrowser/userscripts
 
 # === FASTFETCH ===
-sudo pacman -S fastfetch --noconfirm --quiet
+pacinstall -S fastfetch
 mkdir -p ~/.config/fastfetch
 cp .config/fastfetch/config.jsonc ~/.config/fastfetch/config.jsonc
 mkdir -p ~/Ricing/Custom\ Icons/
 cp Ricing/Custom\ Icons/Arch_Linux_2D_Icon.png ~/Ricing/Custom\ Icons/
 
 # === QUICKSHELL ===
-sudo pacman -S quickshell --noconfirm --quiet
+pacinstall -S quickshell
 mkdir -p ~/.config/quickshell
 cp .config/quickshell/* ~/.config/quickshell/
 
 # === 1PASSWORD ===
-sudo pacman -S jq rofi-wayland wl-clipboard
-yay -S 1password-cli --noconfirm --quiet
+pacinstall -S jq wl-clipboard
+yayinstall -S 1password-cli
 
