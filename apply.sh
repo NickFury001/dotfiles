@@ -28,7 +28,7 @@ yayinstall() {
 
 
 # === YAY ===
-pacinstall -S --needed base-devel go
+pacinstall --needed base-devel go
 git clone https://aur.archlinux.org/yay.git
 cd yay
 makepkg -si
@@ -36,63 +36,63 @@ cd ..
 rm -rf yay
 
 # === HYPRLAND ===
-pacinstall -S hyprland
+pacinstall hyprland
 mkdir -p ~/.config/hypr
 cp .config/hypr/hyprland.lua ~/.config/hypr/hyprland.lua
 
 # === KITTY ===
-pacinstall -S kitty
+pacinstall kitty
 mkdir -p ~/.config/kitty
 cp .config/kitty/kitty.conf ~/.config/kitty/kitty.conf
 
 # === FISH ===
-pacinstall -S fish
+pacinstall fish
 mkdir -p ~/.config/fish
 cp .config/fish/config.fish ~/.config/fish/config.fish
 # Make default shell
 chsh -s "$(command -v fish)"
 
 # === NEOVIM ===
-pacinstall -S neovim
+pacinstall neovim
 mkdir -p ~/.config/nvim
 cp .config/nvim/init.lua ~/.config/nvim/init.lua
 # Lua Autocompletes
-pacinstall -S lua-language-server
+pacinstall lua-language-server
 # QMLJS Autocompletes (https://quickshell.org/docs/v0.3.0/guide/install-setup/#:~:text=Neovim%20has)
 nvim --headless "+TSInstall qmljs" +qa
 
 # === STARSHIP ===
-pacinstall -S starship
+pacinstall starship
 cp .config/starship.toml ~/.config/starship.toml
 
 # === SUPERFILE ===
-pacinstall -S superfile
+pacinstall superfile
 
 # === HYPRPAPER ===
-pacinstall -S hyprpaper
+pacinstall hyprpaper
 mkdir -p ~/.config/hypr/
 cp .config/hypr/hyprpaper.conf ~/.config/hypr/hyprpaper.conf
 mkdir -p ~/Ricing/Wallpapers
 cp Ricing/Wallpapers/Cedeira.jpg ~/Ricing/Wallpapers/Cedeira.jpg
 
 # === QUTEBROWSER ===
-pacinstall -S qutebrowser
+pacinstall qutebrowser
 mkdir -p ~/.config/qutebrowser/userscripts
 cp .config/qutebrowser/userscripts/* ~/.config/qutebrowser/userscripts
 
 # === FASTFETCH ===
-pacinstall -S fastfetch
+pacinstall fastfetch
 mkdir -p ~/.config/fastfetch
 cp .config/fastfetch/config.jsonc ~/.config/fastfetch/config.jsonc
 mkdir -p ~/Ricing/Custom\ Icons/
 cp Ricing/Custom\ Icons/Arch_Linux_2D_Icon.png ~/Ricing/Custom\ Icons/
 
 # === QUICKSHELL ===
-pacinstall -S quickshell
+pacinstall quickshell
 mkdir -p ~/.config/quickshell
 cp .config/quickshell/* ~/.config/quickshell/
 
 # === 1PASSWORD ===
-pacinstall -S jq wl-clipboard
-yayinstall -S 1password-cli
+pacinstall jq wl-clipboard
+yayinstall 1password-cli
 
