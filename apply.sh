@@ -58,7 +58,7 @@ sudo pacman -S fastfetch --noconfirm --quiet
 mkdir -p ~/.config/fastfetch
 cp .config/fastfetch/config.jsonc ~/.config/fastfetch/config.jsonc
 mkdir -p ~/Ricing/Custom\ Icons/
-cp Ricing/Custom Icons/Arch_Linux_2D_Icon.png ~/Ricing/Custom Icons/Arch_Linux_2D_Icon.png
+cp Ricing/Custom\ Icons/Arch_Linux_2D_Icon.png ~/Ricing/Custom\ Icons/
 
 # === QUICKSHELL ===
 sudo pacman -S quickshell --noconfirm --quiet
