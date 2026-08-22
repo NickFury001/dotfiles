@@ -3,6 +3,8 @@ if status is-interactive
     starship init fish | source
     set -gx EDITOR nvim
     set -gx VISUAL nvim
+    set -x BROWSER qutebrowser
+    fastfetch
 end
 
 # Start Hyprland on TTY1

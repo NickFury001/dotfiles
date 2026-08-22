@@ -61,3 +61,17 @@ vim.lsp.config('lua_ls', {
 
 -- 2. Enable the server so it actually runs
 vim.lsp.enable('lua_ls')
+
+-- Automatically show autocomplete
+vim.api.nvim_create_autocmd('LspAttach', {
+  callback = function(args)
+    local client = vim.lsp.get_client_by_id(args.data.client_id)
+    if client and client:supports_method('textDocument/completion') then
+      -- Enable auto-trigger completion
+      vim.lsp.completion.enable(true, client.id, args.buf, { autotrigger = true })
+    end
+  end,
+})
+
+-- Recommended options for visual layout
+vim.opt.completeopt = { 'menu', 'menuone', 'noinsert', 'fuzzy', 'popup' }
