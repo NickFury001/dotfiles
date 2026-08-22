@@ -15,7 +15,7 @@ pacinstall() {
 	if [[ $DEBUG -eq 1 ]]; then
 		sudo pacman -S "$@"
 	else
-		sudo pacman -S --noconfirm --quiet "$@"
+		sudo pacman -S --noconfirm "$@" > /dev/null 2>&1
 	fi
 }
 yayinstall() {
