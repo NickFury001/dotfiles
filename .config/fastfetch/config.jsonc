@@ -37,7 +37,7 @@
     "showErrors": false,
     "disableLinewrap": false,
     "hideCursor": false,
-    "separator": ": ",
+    "separator": "  ",
     "color": {
       "keys": "",
       "title": "",
@@ -104,7 +104,7 @@
     "noBuffer": false,
     "key": {
       "width": 0,
-      "type": "icon",
+      "type": "string",
       "paddingLeft": 0
     },
     "freq": {
@@ -122,73 +122,64 @@
   },
   "modules": [
     {
+      "type": "custom",
+      "format": "{#keys}╭────────────╮"
+    },
+    {
       "type": "title",
-      "key": " ",
-      "keyIcon": " ",
-      "fqdn": false,
-      "color": {
-        "user": "",
-        "at": "",
-        "host": ""
-      }
+      "key": "│  user     │",
+      "format": "{1}"
     },
     {
-      "type": "separator",
-      "string": "-",
-      "outputColor": "",
-      "times": 0
+      "type": "title",
+      "key": "│ 󰇅 hostn    │",
+      "format": "{2}"
     },
     {
-      "type": "os",
-      "keyIcon": " "
-    },
-    {
-      "type": "host",
-      "keyIcon": " "
+      "type": "custom",
+      "format": "{#keys}├────────────┤"
     },
     {
       "type": "kernel",
-      "keyIcon": " "
+      "key": "│  kernel   │"
     },
     {
-      "type": "packages",
-      "keyIcon": "󰏖 ",
-      "disabled": [
-        "apk"
-      ],
-      "combined": false
-    },
-    {
-      "type": "shell",
-      "keyIcon": " "
-    },
-    {
-      "type": "de",
-      "keyIcon": " "
+      "type": "os",
+      "key": "│  distro   │"
     },
     {
       "type": "wm",
-      "keyIcon": " ",
+      "key": "│  winman   │",
       "detectPlugin": true
     },
     {
       "type": "terminal",
-      "keyIcon": " "
+      "key": "│  term     │"
+    },
+    {
+      "type": "shell",
+      "key": "│  shell    │"
+    },
+    {
+      "type": "custom",
+      "format": "{#keys}├────────────┤"
     },
     {
       "type": "cpu",
-      "keyIcon": " ",
+      "key": "│  cpu      │",
+      "format": "{1}",
       "temp": false,
       "showPeCoreCount": true,
       "tempSensor": ""
     },
     {
       "type": "gpu",
-      "keyIcon": "󰾲 ",
+      "key": "│ 󰾲 gpu      │",
       "driverSpecific": false,
       "detectionMethod": "pci",
       "temp": false,
-      "hideType": "none",
+      "hideType": "Integrated",
+      "format": "{2}",
       "percent": {
         "green": 50,
         "yellow": 80,
@@ -197,7 +188,7 @@
     },
     {
       "type": "memory",
-      "keyIcon": " ",
+      "key": "│  mem      │",
       "percent": {
         "green": 50,
         "yellow": 80,
@@ -206,7 +197,7 @@
     },
     {
       "type": "disk",
-      "keyIcon": " ",
+      "key": "│  disk     │",
       "showRegular": true,
       "showExternal": true,
       "showHidden": false,
@@ -224,61 +215,34 @@
       }
     },
     {
-      "type": "battery",
-      "keyIcon": " ",
-      "temp": false,
-      "percent": {
-        "green": 50,
-        "yellow": 20,
-        "type": 0
-      }
-    },
-    {
-      "type": "localip",
-      "keyIcon": "󰩟 ",
-      "showIpv4": true,
-      "showIpv6": false,
-      "showMac": false,
-      "showLoop": false,
-      "showPrefixLen": true,
-      "showMtu": false,
-      "showSpeed": false,
-      "showFlags": false,
-      "compact": false,
-      "defaultRouteOnly": true,
-      "showAllIps": false,
-      "namePrefix": ""
-    },
-    {
-      "type": "datetime",
-      "keyIcon": " "
-    },
-    {
-      "type": "locale",
-      "keyIcon": " "
-    },
-    {
       "type": "weather",
-      "keyIcon": "󰖙 ",
+      "key": "│ 󰖙 weather   │",
       "location": "",
       "outputFormat": "%t+-+%C+(%l)",
       "timeout": 0
     },
-    "break",
+    {
+      "type": "custom",
+      "format": "{#keys}├────────────┤"
+    },
     {
       "type": "colors",
       "key": " ",
-      "keyIcon": " ",
-      "symbol": "block",
+      "key": "│  colors   │",
+      "symbol": "circle",
       "paddingLeft": 0,
       "block": {
-        "width": 3,
+        "width": 1,
         "range": [
           0,
           15
         ]
       },
       "brightness": "default"
+    },
+    {
+      "type": "custom",
+      "format": "{#keys}╰────────────╯"
     }
   ]
 }
