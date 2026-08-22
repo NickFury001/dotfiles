@@ -22,7 +22,7 @@ yayinstall() {
 	if [[ $DEBUG -eq 1 ]]; then
 		yay -S "$@"
 	else
-		yay -S --noconfirm --quiet "$@"
+		yay -S --noconfirm --quiet "$@" > /dev/null 2>&1
 	fi
 }
 
