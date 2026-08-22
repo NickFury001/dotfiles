@@ -56,14 +56,15 @@ PanelWindow {
 		visible: batteryDevice.isPresent
 		anchors.right: clockRoot.left
 		anchors.verticalCenter: parent.verticalCenter
-		property string batPer: batteryDevice.percentage*100 + "%"
+		property string batPer: Math.round(batteryDevice.percentage*100) + "%"
 		text: batPer
 		color: "white"
 
 		Timer {
 			interval: 5000
 			running: true
-			onTriggered: battery.batPer = battery.batteryDevice.percentage*100 + "%"
+			repeat: true
+			onTriggered: battery.batPer = Math.round(battery.batteryDevice.percentage*100) + "%"
 		}
 	}
 }
