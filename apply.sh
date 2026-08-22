@@ -31,7 +31,7 @@ yayinstall() {
 pacinstall --needed base-devel go
 git clone https://aur.archlinux.org/yay.git
 cd yay
-makepkg -si
+makepkg -si > /dev/null 2>&1
 cd ..
 rm -rf yay
 
