@@ -37,7 +37,7 @@ hl.monitor({
 -- Set programs that you use
 local terminal = "kitty"
 local fileManager = "kitty --hold spf"
-local menu = "quickshell -p ~/.config/quickshell/launcher.qml"
+local menu = "hyprlauncher"
 local browser = "qutebrowser --qt-flag disable-gpu"
 
 -------------------
@@ -51,8 +51,10 @@ local browser = "qutebrowser --qt-flag disable-gpu"
 --
 hl.on("hyprland.start", function () 
    hl.exec_cmd("hyprpaper")
-   hl.exec_cmd("quickshell")
-   hl.exec_cmd("at ~/.local/share/kpc_pass.txt | keepassxc --minimized --pw-stdin ~/KeePassXC/Passwords.kdbx")
+   hl.exec_cmd("qs")
+   hl.exec_cmd("wl-clip-persist --clipboard regular")
+   hl.exec_cmd("snappy-switcher --daemon")
+--   hl.exec_cmd("at ~/.local/share/kpc_pass.txt | keepassxc --minimized --pw-stdin ~/KeePassXC/Passwords.kdbx")
 --   hl.exec_cmd(terminal)
 --   hl.exec_cmd("nm-applet")
 --   hl.exec_cmd("waybar & hyprpaper & firefox")
@@ -68,6 +70,7 @@ end)
 hl.env("XCURSOR_SIZE", "24")
 hl.env("HYPRCURSOR_SIZE", "24")
 hl.env("ELECTRON_OZONE_PLATFORM_HINT", "auto")
+hl.env("WLR_DRM_DEVICES", "/dev/dri/card1")
 
 
 -----------------------
@@ -334,7 +337,8 @@ hl.bind("CTRL + ALT + SHIFT + DELETE", hl.dsp.exec_cmd("shutdown now"))
 hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("noctalia msg panel-open clipboard"))
 
 -- Window Switcher
-hl.bind(mainMod .. " + TAB", hl.dsp.exec_cmd("noctalia msg window-switcher"))
+hl.bind("ALT + Tab", hl.dsp.exec_cmd("snappy-switcher next --mod alt"))
+hl.bind("SUPER + TAB", hl.dsp.exec_cmd("snappy-switcher next --workspace --mod super"))
 
 
 --------------------------------

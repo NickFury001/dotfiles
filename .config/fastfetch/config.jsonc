@@ -216,10 +216,10 @@
     },
     {
       "type": "weather",
-      "key": "│ 󰖙 weather   │",
-      "location": "",
+      "key": "│ 󰖙 weather  │",
+      "location": "Madrid",
       "outputFormat": "%t+-+%C+(%l)",
-      "timeout": 0
+      "timeout": 1000
     },
     {
       "type": "custom",

@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+set +e
+
+# JS field injection code from https://github.com/qutebrowser/qutebrowser/blob/main/misc/userscripts/password_fill
+javascript_escape() {
+    # print the first argument in an escaped way, such that it can safely
+    # be used within javascripts double quotes
+    # shellcheck disable=SC2001
+    sed "s,[\\\\'\"\/],\\\\&,g" <<< "$1"
+}
+
+js() {
+cat <<EOF
+    function isVisible(elem) {
+        var style = elem.ownerDocument.defaultView.getComputedStyle(elem, null);
+        if (style.getPropertyValue("visibility") !== "visible" ||
+            style.getPropertyValue("display") === "none" ||
+            style.getPropertyValue("opacity") === "0") {
+            return false;
+        }
+        return elem.offsetWidth > 0 && elem.offsetHeight > 0;
+    };
+    function hasPasswordField(form) {
+        var inputs = form.getElementsByTagName("input");
+        for (var j = 0; j < inputs.length; j++) {
+            var input = inputs[j];
+            if (input.type == "password") {
+                return true;
+            }
+        }
+        return false;
+    };
+    function loadData2Form (form) {
+        var inputs = form.getElementsByTagName("input");
+        for (var j = 0; j < inputs.length; j++) {
+            var input = inputs[j];
+            if (isVisible(input) && (input.type == "text" || input.type == "email")) {
+                input.focus();
+                input.value = "$(javascript_escape "${USERNAME}")";
+                input.dispatchEvent(new Event('change'));
+                input.blur();
+            }
+            if (input.type == "password") {
+                input.focus();
+                input.value = "$(javascript_escape "${PASSWORD}")";
+                input.dispatchEvent(new Event('change'));
+                input.blur();
+            }
+        }
+    };
+    var forms = document.getElementsByTagName("form");
+    if("$(javascript_escape "${QUTE_URL}")" == window.location.href) {
+        for (i = 0; i < forms.length; i++) {
+            if (hasPasswordField(forms[i])) {
+                loadData2Form(forms[i]);
+            }
+        }
+    } else {
+        alert("Secrets will not be inserted.\\nUrl of this page and the one where the user script was started differ.");
+    }
+EOF
+}
+
+URL=$(echo "$QUTE_URL" | awk -F/ '{print $3}' | sed 's/www.//g')
+
+# Sign in (opens 1Password GUI)
+# Replace the current eval "$(op signin)" block with:
+if ! eval "$(op signin 2>&1)"; then
+    echo "message-error 'op signin failed – check :messages'" >> "$QUTE_FIFO"
+    exit 1
+fi
+
+echo "message-info 'Looking for password for $URL...'" >> "$QUTE_FIFO"
+
+# Try to find an item that matches the current URL
+UUID=$(op item list --format=json 2>/dev/null | jq --arg url "$URL" -r '
+    [.[] 
+     | select(.urls != null) 
+     | select(any(.urls[]; .href | test(".*\($url).*"; "i")))
+    ][0].id // empty
+')
+
+# Fallback: let the user pick by title
+if [ -z "$UUID" ]; then
+    echo "message-error 'No entry found for $URL'" >> "$QUTE_FIFO"
+    TITLE=$(op item list --format=json 2>/dev/null | jq -r '.[].title' | rofi -dmenu -i -p "Select 1Password item") || TITLE=""
+    if [ -n "$TITLE" ]; then
+        UUID=$(op item list --format=json 2>/dev/null | jq --arg title "$TITLE" -r '
+            [.[] | select(.title == $title)][0].id // empty
+        ')
+    fi
+fi
+
+if [ -n "$UUID" ]; then
+    ITEM=$(op item get "$UUID" --format=json 2>/dev/null)
+    PASSWORD=$(echo "$ITEM" | jq -r '.fields[]? | select(.purpose == "PASSWORD") | .value // empty')
+    USERNAME=$(echo "$ITEM" | jq -r '.fields[]? | select(.purpose == "USERNAME") | .value // empty')
+    TITLE=$(echo "$ITEM" | jq -r '.title // empty')
+
+    if [ -n "$PASSWORD" ]; then
+        printjs() {
+            js | sed 's,//.*$,,' | tr '\n' ' '
+        }
+        echo "jseval -q $(printjs)" >> "$QUTE_FIFO"
+
+        # Copy TOTP to clipboard if present (Wayland)
+        TOTP=$(op item get "$UUID" --otp 2>/dev/null) || TOTP=""
+        if [ -n "$TOTP" ]; then
+            echo -n "$TOTP" | wl-copy
+            echo "message-info 'Pasted one-time password for $TITLE to clipboard'" >> "$QUTE_FIFO"
+        fi
+    else
+        echo "message-error 'No password found for $URL'" >> "$QUTE_FIFO"
+    fi
+else
+    echo "message-error 'Entry not found'" >> "$QUTE_FIFO"
+fi

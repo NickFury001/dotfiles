@@ -56,9 +56,37 @@ PanelWindow {
 		anchors.verticalCenter: parent.verticalCenter
 		anchors.left: desktopsRoot.right
 		anchors.leftMargin: 15
+		spacing: 4
+
+		Row {
+			spacing: 8
+			Repeater {
+				model: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.toplevels : []
+				delegate: Image {
+					width: 20
+					height: 20
+					smooth: true
+					opacity: modelData.activated ? 1.0 : 0.55
+					fillMode: Image.PreserveAspectFit
+					source: {
+						if (!modelData || !modelData.wayland) return "";
+						let appId = modelData.wayland.appId;
+						if (!appId) return "";
+						let desktopEntry = DesktopEntries.heuristicLookup(appId);
+						if (desktopEntry) {
+							let iconPath = Quickshell.iconPath(desktopEntry.icon, true);
+							return iconPath;
+						}
+						return Quickshell.iconPath(appId, true);
+					}
+				}
+			}
+		}
 
 		Text {
 			id: activeWindowNameText
+
+			anchors.verticalCenter: parent.verticalCenter
 
 			font.family: root.fontFamily
 

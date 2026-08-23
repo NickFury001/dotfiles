@@ -101,7 +101,7 @@ $shell\
 $character"""
 right_format = ""
 continuation_prompt = "[∙](bright-black) "
-scan_timeout = 30
+scan_timeout = 500
 command_timeout = 500
 add_newline = true
 follow_symlinks = true
