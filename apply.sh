@@ -1,6 +1,19 @@
 #!/bin/bash
 # Tip: Start with a blank arch
 # Update to the latest everything on a clean arch install
+#
+
+# Keep sudo
+
+sudo -v
+
+while true; do 
+    sudo -n true
+    sleep 60
+    kill -0 "$$" 2>/dev/null || exit
+done &
+
+
 sudo pacman -Syu > /dev/null 2>&1
 
 # Default behavior is not to use debug
@@ -31,7 +44,7 @@ yayinstall() {
 pacinstall --needed base-devel go
 git clone https://aur.archlinux.org/yay.git
 cd yay
-makepkg -si > /dev/null 2>&1
+makepkg -si --noconfirm > /dev/null 2>&1
 cd ..
 rm -rf yay
 
