@@ -42,7 +42,7 @@ yayinstall() {
 
 # === YAY ===
 pacinstall --needed base-devel go
-git clone https://aur.archlinux.org/yay.git
+git clone https://aur.archlinux.org/yay.git > /dev/null 2>&1
 cd yay
 makepkg -si --noconfirm > /dev/null 2>&1
 cd ..
