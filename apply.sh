@@ -120,7 +120,7 @@ fi
 draw_progress "Installing Neovim..."
 pacinstall neovim
 mkdir -p ~/.config/nvim
-cp .config/nvim/init.lua ~/.config/nvim/init.lua
+cp -r .config/nvim/. ~/.config/nvim/
 pacinstall lua-language-server
 if [[ $DEBUG -eq 1 ]]; then
     nvim --headless "+TSInstall qmljs" +qa
