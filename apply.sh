@@ -1,87 +1,138 @@
 #!/bin/bash
 # Tip: Start with a blank arch
-# Update to the latest everything on a clean arch install
-#
 
 # Keep sudo
-
 sudo -v
-
 while true; do 
     sudo -n true
     sleep 60
     kill -0 "$$" 2>/dev/null || exit
 done &
 
-
-sudo pacman -Syu > /dev/null 2>&1
-
-# Default behavior is not to use debug
 DEBUG=0
-
 if [[ "$1" == "--debug" ]]; then
-	DEBUG=1
-	echo "Debug mode enabled: pacman will ask for confirmation."
+    DEBUG=1
+    echo "Debug mode enabled: pacman will ask for confirmation and show output."
 fi
 
-pacinstall() {
-	if [[ $DEBUG -eq 1 ]]; then
-		sudo pacman -S "$@"
-	else
-		sudo pacman -S --noconfirm "$@" > /dev/null 2>&1
-	fi
-}
-yayinstall() {
-	if [[ $DEBUG -eq 1 ]]; then
-		yay -S "$@"
-	else
-		yay -S --noconfirm --quiet "$@" > /dev/null 2>&1
-	fi
+# Set the total number of steps to calculate the percentage
+TOTAL_STEPS=13
+CURRENT_STEP=0
+
+# Progress bar function suitable for TTY
+draw_progress() {
+    local message="$1"
+    ((CURRENT_STEP++))
+    
+    # If in debug mode, just print the step instead of the bar
+    if [[ $DEBUG -eq 1 ]]; then
+        echo -e "\n---> Step $CURRENT_STEP/$TOTAL_STEPS: $message <---"
+        return
+    fi
+
+    local width=40
+    local percent=$(( CURRENT_STEP * 100 / TOTAL_STEPS ))
+    local filled=$(( percent * width / 100 ))
+    local empty=$(( width - filled ))
+    
+    local bar=""
+    for ((i=0; i<filled; i++)); do bar+="#"; done
+    for ((i=0; i<empty; i++)); do bar+=" "; done
+    
+    # \r moves cursor to the beginning of the line
+    # \033[2K clears the current line in the TTY
+    printf "\r\033[2K[%s] %3d%% | %s" "$bar" "$percent" "$message"
+    
+    if [[ $CURRENT_STEP -eq $TOTAL_STEPS ]]; then
+        echo -e "\nInstallation complete!"
+    fi
 }
 
+pacinstall() {
+    if [[ $DEBUG -eq 1 ]]; then
+        sudo pacman -S "$@"
+    else
+        sudo pacman -S --noconfirm "$@" > /dev/null 2>&1
+    fi
+}
+
+yayinstall() {
+    if [[ $DEBUG -eq 1 ]]; then
+        yay -S "$@"
+    else
+        yay -S --noconfirm --quiet "$@" > /dev/null 2>&1
+    fi
+}
+
+# === UPDATE SYSTEM ===
+draw_progress "Updating system..."
+if [[ $DEBUG -eq 1 ]]; then
+    sudo pacman -Syu
+else
+    sudo pacman -Syu --noconfirm > /dev/null 2>&1
+fi
 
 # === YAY ===
+draw_progress "Installing yay..."
 pacinstall --needed base-devel go
-git clone https://aur.archlinux.org/yay.git > /dev/null 2>&1
-cd yay
-makepkg -si --noconfirm > /dev/null 2>&1
+if [[ $DEBUG -eq 1 ]]; then
+    git clone https://aur.archlinux.org/yay.git
+    cd yay || exit
+    makepkg -si
+else
+    git clone https://aur.archlinux.org/yay.git > /dev/null 2>&1
+    cd yay || exit
+    makepkg -si --noconfirm > /dev/null 2>&1
+fi
 cd ..
 rm -rf yay
 
 # === HYPRLAND ===
+draw_progress "Installing Hyprland..."
 pacinstall hyprland
 mkdir -p ~/.config/hypr
 cp .config/hypr/hyprland.lua ~/.config/hypr/hyprland.lua
 
 # === KITTY ===
+draw_progress "Installing Kitty..."
 pacinstall kitty
 mkdir -p ~/.config/kitty
 cp .config/kitty/kitty.conf ~/.config/kitty/kitty.conf
 
 # === FISH ===
+draw_progress "Installing Fish..."
 pacinstall fish
 mkdir -p ~/.config/fish
 cp .config/fish/config.fish ~/.config/fish/config.fish
-# Make default shell
-chsh -s "$(command -v fish)"
+if [[ $DEBUG -eq 1 ]]; then
+    chsh -s "$(command -v fish)"
+else
+    chsh -s "$(command -v fish)" > /dev/null 2>&1
+fi
 
 # === NEOVIM ===
+draw_progress "Installing Neovim..."
 pacinstall neovim
 mkdir -p ~/.config/nvim
 cp .config/nvim/init.lua ~/.config/nvim/init.lua
-# Lua Autocompletes
 pacinstall lua-language-server
-# QMLJS Autocompletes (https://quickshell.org/docs/v0.3.0/guide/install-setup/#:~:text=Neovim%20has)
-nvim --headless "+TSInstall qmljs" +qa
+if [[ $DEBUG -eq 1 ]]; then
+    nvim --headless "+TSInstall qmljs" +qa
+else
+    nvim --headless "+TSInstall qmljs" +qa > /dev/null 2>&1
+fi
 
 # === STARSHIP ===
+draw_progress "Installing Starship..."
 pacinstall starship
 cp .config/starship.toml ~/.config/starship.toml
 
 # === SUPERFILE ===
+draw_progress "Installing Superfile..."
 pacinstall superfile
 
 # === HYPRPAPER ===
+draw_progress "Installing Hyprpaper..."
 pacinstall hyprpaper
 mkdir -p ~/.config/hypr/
 cp .config/hypr/hyprpaper.conf ~/.config/hypr/hyprpaper.conf
@@ -89,11 +140,13 @@ mkdir -p ~/Ricing/Wallpapers
 cp Ricing/Wallpapers/Cedeira.jpg ~/Ricing/Wallpapers/Cedeira.jpg
 
 # === QUTEBROWSER ===
+draw_progress "Installing Qutebrowser..."
 pacinstall qutebrowser
 mkdir -p ~/.config/qutebrowser/userscripts
 cp .config/qutebrowser/userscripts/* ~/.config/qutebrowser/userscripts
 
 # === FASTFETCH ===
+draw_progress "Installing Fastfetch..."
 pacinstall fastfetch
 mkdir -p ~/.config/fastfetch
 cp .config/fastfetch/config.jsonc ~/.config/fastfetch/config.jsonc
@@ -101,11 +154,12 @@ mkdir -p ~/Ricing/Custom\ Icons/
 cp Ricing/Custom\ Icons/Arch_Linux_2D_Icon.png ~/Ricing/Custom\ Icons/
 
 # === QUICKSHELL ===
+draw_progress "Installing Quickshell..."
 pacinstall quickshell
 mkdir -p ~/.config/quickshell
 cp .config/quickshell/* ~/.config/quickshell/
 
 # === 1PASSWORD ===
+draw_progress "Installing 1Password..."
 pacinstall jq wl-clipboard
 yayinstall 1password-cli
-
