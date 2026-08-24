@@ -13,6 +13,3 @@ if status is-login
         start-hyprland
     end
 end
-
-# Created by `pipx` on 2026-08-24 19:29:18
-set PATH $PATH /home/REDACTED/.local/bin
