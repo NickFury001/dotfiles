@@ -4,12 +4,18 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 
 // Top bar
 PanelWindow {
 	id: root
 
 	readonly property string fontFamily: "JetBrainsMono Nerd Font"
+	readonly property int spacingBetweenWidgets: 15
+	readonly property int spacingBetweenWidgetElements: 4
+	readonly property int imageIconSize: 20
+	readonly property int textIconSize: 18
+	readonly property real unfocusedOpacity: 0.50
 	
 	anchors {
 		top: true
@@ -21,52 +27,54 @@ PanelWindow {
 	implicitHeight: 30
 
 
-	RowLayout {
-		id: desktopsRoot
-
+	// === LEFT SIDE ===
+	Row {
 		anchors.verticalCenter: parent.verticalCenter
-		anchors.left: parent.left
+		spacing: root.spacingBetweenWidgets
 
-		Repeater {
-			model: Hyprland.workspaces.values.length
+		// Desktop Numbers
+		RowLayout {
+			id: desktopsRoot
 
-			Text {
-				property var currentWorkspace: Hyprland.workspaces.values.find(w => w.id === index + 1)
-				property bool isActive: Hyprland.focusedWorkspace?.id === (index + 1)
-				
-				font.family: root.fontFamily
-				font.underline: isActive
-				font.bold: isActive
+			anchors.verticalCenter: parent.verticalCenter
+	
+			Repeater {
+				model: {
+					const highestActiveId = Hyprland.workspaces.values.reduce((max, w) => Math.max(max, w.id), 0);
+					const focusedId = Hyprland.focusedWorkspace?.id || 0;
+					return Math.max(highestActiveId, focusedId);
+				}
+	
+				Text {
+					property var currentWorkspace: Hyprland.workspaces.values.find(w => w.id === index + 1)
+					property bool isActive: Hyprland.focusedWorkspace?.id === (index + 1)
 
-				color: isActive ? "white" : "grey"
-				text: index + 1
-
-				// Click to go to workspace
-				MouseArea {
-					anchors.fill: parent
-					onClicked: Hyprland.dispatch(`hl.dsp.focus({ workspace = ${index + 1}})`)
+					font.family: root.fontFamily
+					font.underline: isActive
+					font.bold: isActive
+	
+					color: "white"
+					opacity: isActive ? 1 : root.unfocusedOpacity
+					text: index + 1
+	
+					MouseArea {
+						anchors.fill: parent
+						onClicked: Hyprland.dispatch(`hl.dsp.focus({ workspace = ${index + 1}})`)
+					}
 				}
 			}
 		}
-	}
-
-	Row {
-		id: applicationsRoot
-
-		anchors.verticalCenter: parent.verticalCenter
-		anchors.left: desktopsRoot.right
-		anchors.leftMargin: 15
-		spacing: 4
-
+		// App Icons
 		Row {
-			spacing: 8
+			anchors.verticalCenter: parent.verticalCenter
+			spacing: root.spacingBetweenWidgetElements
 			Repeater {
 				model: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.toplevels : []
 				delegate: Image {
-					width: 20
-					height: 20
+					width: root.imageIconSize
+					height: root.imageIconSize
 					smooth: true
-					opacity: modelData.activated ? 1.0 : 0.55
+					opacity: modelData.activated ? 1.0 : root.unfocusedOpacity
 					fillMode: Image.PreserveAspectFit
 					source: {
 						if (!modelData || !modelData.wayland) return "";
@@ -82,7 +90,7 @@ PanelWindow {
 				}
 			}
 		}
-
+		// Current Application Title
 		Text {
 			id: activeWindowNameText
 
@@ -97,166 +105,207 @@ PanelWindow {
 		}
 	}
 
-
-	Column {
-		id: clockRoot
-
-		property string date: Qt.formatDateTime(new Date(), "MM/dd/yyyy")
-		property string time: Qt.formatDateTime(new Date(), "h:mm:ss AP")
-
+	// === RIGHT SIDE ===
+	Row {
 		anchors.verticalCenter: parent.verticalCenter
 		anchors.right: parent.right
+		spacing: root.spacingBetweenWidgets
 
-		Text {
-			id: date
-			anchors.right: parent.right
-			text: clockRoot.date
-			color: "white"
-			font.family: root.fontFamily
-		}
-
-		Text {
-			id: time
-			anchors.right: parent.right
-			text: clockRoot.time
-			color: "white"
-			font.family: root.fontFamily
-		}
-
-		Timer {
-			interval: 1000
-			running: true
-			repeat: true
-			onTriggered: {
-				clockRoot.date = Qt.formatDateTime(new Date(), "MM/dd/yyyy")
-				clockRoot.time = Qt.formatDateTime(new Date(), "h:mm:ss AP")
-			}
-		}
-	}
-	Row {
-		id: batteryRoot
-
-		readonly property UPowerDevice batteryDevice: UPower.displayDevice
-		property int batteryState: batteryDevice ? batteryDevice.state : 0
-		property real batteryPercentage: batteryDevice ? batteryDevice.percentage : 0
-
-		visible: batteryDevice && batteryDevice.isPresent && batteryDevice.isLaptopBattery
-		anchors.right: clockRoot.left
-		anchors.rightMargin: 15
-		anchors.verticalCenter: parent.verticalCenter
-		spacing: 4
-		
-		Text {
-			id: profileIcon
-
-			color: "white"
-			font.family: root.fontFamily
-			font.pixelSize: 18
-
+		Row {
+			id: brightnessRoot
+	
+			property string brightnessPercentage: "100"
+	
 			anchors.verticalCenter: parent.verticalCenter
-
-			text: {
-				return ["󰾆", "󰾅", "󰓅"][PowerProfiles.profile]
-			}
-
-			MouseArea {
-				anchors.fill: parent
-				onClicked: {
-					let current = PowerProfiles.profile
-
-					if (current === PowerProfile.PowerSaver) {
-						PowerProfiles.profile = PowerProfile.Balanced
-					} else if (current === PowerProfile.Balanced) {
-						if (PowerProfiles.hasPerformanceProfile) {
-							PowerProfiles.profile = PowerProfile.Performance
+			spacing: root.spacingBetweenWidgetElements
+	
+			Text {
+				id: brightnessIcon
+	
+				color: "white"
+				font.family: root.fontFamily
+				font.pixelSize: root.textIconSize
+	
+				anchors.verticalCenter: parent.verticalCenter
+	
+				text: {
+					let brightnessIcons = ["󰃚", "󰃛", "󰃜", "󰃝", "󰃞", "󰃟", "󰃠"];
+					let index = Math.max(0, Math.min(6, Math.ceil(brightnessRoot.brightnessPercentage / (100 / 7)) - 1))
+					return brightnessIcons[index]
+				}
+				
+				MouseArea {
+					anchors.fill: parent
+	
+					onWheel: (wheel) => {
+						if (wheel.angleDelta.y > 0) {
+							Quickshell.execDetached(["brightnessctl", "set", "+1%"])
 						} else {
-							PowerProfiles.profile = PowerProfile.PowerSaver
+							Quickshell.execDetached(["brightnessctl", "set", "1%-"])
 						}
-					} else {
-						PowerProfiles.profile = PowerProfile.PowerSaver
+					}
+				}
+			}
+	
+			Process {
+				id: getBrightness
+				command: ["brightnessctl", "-m"]
+				running: true
+				stdout: StdioCollector {
+					onStreamFinished: {
+						let output = this.text.trim()
+						if (output) {
+							let rawString = output.split(",")[3].replace("%", "")
+							brightnessRoot.brightnessPercentage = parseInt(rawString) || 100
+						}
+					}
+				}
+			}
+	
+			Process {
+				id: brightnessWatcher
+				command: ["sh", "-c", "inotifywait -m -e modify /sys/class/backlight/*/brightness"]
+				running: true
+				stdout: SplitParser {
+					onRead: data => {
+						getBrightness.running = true
 					}
 				}
 			}
 		}
 
-		Text {
-			id: batteryIcon
-
-			color: "white"
-			font.family: root.fontFamily
-			font.pixelSize: 18
-
+		Item {
+			id: batteryRoot
+	
+			readonly property UPowerDevice batteryDevice: UPower.displayDevice
+			property int batteryState: batteryDevice ? batteryDevice.state : 0
+			property real batteryPercentage: batteryDevice ? batteryDevice.percentage : 0
+	
 			anchors.verticalCenter: parent.verticalCenter
 
-			text: {
-				let percentage = Math.round(batteryRoot.batteryPercentage * 100)
-				let isCharging = batteryRoot.batteryState === UPowerDeviceState.Charging
-				const dischargeIcons = ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
-				const chargeIcons = ["󰢟", "󰢜", "󰂆", "󰂇", "󰂈", "󰢝", "󰂉", "󰢞", "󰂊", "󰂋", "󰂄"]
-				let index = Math.max(0, Math.min(10, Math.floor(percentage / 10)))
-				return isCharging ? chargeIcons[index] : dischargeIcons[index]
+			height: parent.height
+			width: childrenRect.width
+	
+			visible: batteryDevice && batteryDevice.isPresent && batteryDevice.isLaptopBattery
+	
+			
+			HoverHandler {
+				id: batteryHover
 			}
-		}
-
-		Text {
-			id: batteryPercentageText
-
-			color: "white"
-			font.family: root.fontFamily
-
-			anchors.verticalCenter: parent.verticalCenter
-
-			text: Math.round(batteryRoot.batteryPercentage * 100) + "%"
-		}
-	}
-	Row {
-		id: brightnessRoot
-
-		property string brightnessPercentage: "100"
-
-		anchors.right: batteryRoot.left
-		anchors.rightMargin: 15
-		anchors.verticalCenter: parent.verticalCenter
-
-		spacing: 4
-
-		Text {
-			id: brightnessIcon
-
-			color: "white"
-			font.family: root.fontFamily
-			font.pixelSize: 18
-
-			anchors.verticalCenter: parent.verticalCenter
-
-			text: {
-				let brightnessIcons = ["󰃚", "󰃛", "󰃜", "󰃝", "󰃞", "󰃟", "󰃠"];
-				let index = Math.max(0, Math.min(6, Math.ceil(brightnessRoot.brightnessPercentage / (100 / 7)) - 1));
-				return brightnessIcons[index];
+	
+			ToolTip {
+				visible: batteryHover.hovered
+				text: "Hello, World!"
+				delay: 400
+				timeout: 4000
+				popupType: Popup.Native
 			}
-		}
-
-		Process {
-			id: getBrightness
-			command: ["brightnessctl", "-m"]
-			running: true
-			stdout: StdioCollector {
-				onStreamFinished: {
-					let output = this.text.trim();
-					if (output) {
-						let rawString = output.split(",")[3].replace("%", "");
-						brightnessRoot.brightnessPercentage = parseInt(rawString) || 100;
+	
+	
+			Row {
+				anchors.right: parent.right
+				anchors.verticalCenter: parent.verticalCenter
+				spacing: 4
+							
+				Text {
+					id: profileIcon
+		
+					color: "white"
+					font.family: root.fontFamily
+					font.pixelSize: 18
+		
+					anchors.verticalCenter: parent.verticalCenter
+			
+					text: {
+						return ["󰾆", "󰾅", "󰓅"][PowerProfiles.profile]
 					}
+		
+					MouseArea {
+						anchors.fill: parent
+						onClicked: {
+							let current = PowerProfiles.profile
+		
+							if (current === PowerProfile.PowerSaver) {
+								PowerProfiles.profile = PowerProfile.Balanced
+								Quickshell.execDetached(["fish", "-c", "setpower normal"])
+							} else if (current === PowerProfile.Balanced) {
+								if (PowerProfiles.hasPerformanceProfile) {
+									PowerProfiles.profile = PowerProfile.Performance
+									Quickshell.execDetached(["fish", "-c", "setpower perf"])
+								} else {
+									PowerProfiles.profile = PowerProfile.PowerSaver
+									Quickshell.execDetached(["fish", "-c", "setpower saver"]);
+								}
+							} else {
+								PowerProfiles.profile = PowerProfile.PowerSaver
+							}
+						}
+					}
+				}
+		
+				Text {
+					id: batteryIcon
+	
+					color: "white"
+					font.family: root.fontFamily
+					font.pixelSize: 18
+		
+					anchors.verticalCenter: parent.verticalCenter
+		
+					text: {
+						let percentage = Math.round(batteryRoot.batteryPercentage * 100)
+						let isCharging = batteryRoot.batteryState === UPowerDeviceState.Charging
+						const dischargeIcons = ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
+						const chargeIcons = ["󰢟", "󰢜", "󰂆", "󰂇", "󰂈", "󰢝", "󰂉", "󰢞", "󰂊", "󰂋", "󰂄"]
+						let index = Math.max(0, Math.min(10, Math.floor(percentage / 10)))
+						return isCharging ? chargeIcons[index] : dischargeIcons[index]
+					}
+				}
+		
+				Text {
+					id: batteryPercentageText
+		
+					color: "white"
+					font.family: root.fontFamily
+		
+					anchors.verticalCenter: parent.verticalCenter
+		
+					text: Math.round(batteryRoot.batteryPercentage * 100) + "%"
 				}
 			}
 		}
-		Process {
-			id: brightnessWatcher
-			command: ["sh", "-c", "inotifywait -m -e modify /sys/class/backlight/*/brightness"]
-			running: true
-			stdout: SplitParser {
-				onRead: data => {
-					getBrightness.running = true;
+
+		Column {
+			id: clockRoot
+	
+			property string date: Qt.formatDateTime(new Date(), "MM/dd/yyyy")
+			property string time: Qt.formatDateTime(new Date(), "h:mm:ss AP")
+	
+			anchors.verticalCenter: parent.verticalCenter
+	
+			Text {
+				id: date
+				anchors.right: parent.right
+				text: clockRoot.date
+				color: "white"
+				font.family: root.fontFamily
+			}
+	
+			Text {
+				id: time
+				anchors.right: parent.right
+				text: clockRoot.time
+				color: "white"
+				font.family: root.fontFamily
+			}
+	
+			Timer {
+				interval: 1000
+				running: true
+				repeat: true
+				onTriggered: {
+					clockRoot.date = Qt.formatDateTime(new Date(), "MM/dd/yyyy")
+					clockRoot.time = Qt.formatDateTime(new Date(), "h:mm:ss AP")
 				}
 			}
 		}

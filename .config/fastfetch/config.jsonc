@@ -215,15 +215,15 @@
       }
     },
     {
+      "type": "custom",
+      "format": "{#keys}├────────────┤"
+    },
+    {
       "type": "weather",
       "key": "│ 󰖙 weather  │",
       "location": "Madrid",
       "outputFormat": "%t+-+%C+(%l)",
       "timeout": 1000
-    },
-    {
-      "type": "custom",
-      "format": "{#keys}├────────────┤"
     },
     {
       "type": "colors",

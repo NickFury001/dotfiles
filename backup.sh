@@ -11,9 +11,9 @@ cp ~/.config/hypr/hyprpaper.conf .config/hypr/
 # === KITTY ===
 cp ~/.config/kitty/kitty.conf .config/kitty/
 # === NVIM ===
-cp ~/.config/nvim/init.lua .config/nvim/
+cp -r ~/.config/nvim/. .config/nvim/
 # === QUICKSHELL ===
-cp ~/.config/quickshell/* .config/quickshell/
+cp -r ~/.config/quickshell/. .config/quickshell/
 # === QUTEBROWSER ===
 cp ~/.config/qutebrowser/userscripts/* .config/qutebrowser/userscripts/
 # === STARSHIP ===
