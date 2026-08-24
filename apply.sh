@@ -1,16 +1,14 @@
 #!/bin/bash
 # Tip: Start with a blank arch
 
-# Keep sudo
+# Authenticate upfront
 sudo -v
 
-while true; do 
-    # -v updates the cached credentials
-    # -n ensures the background loop fails silently instead of hanging the script if it somehow expires
-    sudo -n -v 2>/dev/null
-    sleep 60
-    kill -0 "$$" 2>/dev/null || exit
-done &
+# Temporarily disable sudo password prompts for the installer to prevent TTY corruption
+echo "$USER ALL=(ALL) NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$USER-installer" > /dev/null
+
+# Ensure the temporary sudoers file is removed when the script exits (success, failure, or Ctrl+C)
+trap 'sudo rm -f "/etc/sudoers.d/$USER-installer"' EXIT
 
 DEBUG=0
 if [[ "$1" == "--debug" ]]; then
@@ -105,15 +103,17 @@ cp .config/kitty/kitty.conf ~/.config/kitty/kitty.conf
 # === JETBRAINS MONO NERD FONT ===
 draw_progress "Installing JetBrains Mono Nerd Font..."
 pacinstall ttf-jetbrains-mono-nerd
+
 # === FISH ===
 draw_progress "Installing Fish..."
 pacinstall fish
 mkdir -p ~/.config/fish
 cp .config/fish/config.fish ~/.config/fish/config.fish
+# Fix: chsh prompts for a password unless run as sudo
 if [[ $DEBUG -eq 1 ]]; then
-    chsh -s "$(command -v fish)"
+    sudo chsh -s "$(command -v fish)" "$USER"
 else
-    chsh -s "$(command -v fish)" > /dev/null 2>&1
+    sudo chsh -s "$(command -v fish)" "$USER" > /dev/null 2>&1
 fi
 
 # === NEOVIM ===
