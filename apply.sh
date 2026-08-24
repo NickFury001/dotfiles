@@ -169,3 +169,8 @@ rm -rf yay
 draw_progress "Installing 1Password..."
 pacinstall jq wl-clipboard
 yayinstall 1password-cli
+
+
+# When the setup is complete, go into hyprland
+
+start-hyprland
