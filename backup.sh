@@ -15,6 +15,6 @@ cp -r ~/.config/nvim/. .config/nvim/
 # === QUICKSHELL ===
 cp -r ~/.config/quickshell/. .config/quickshell/
 # === QUTEBROWSER ===
-cp ~/.config/qutebrowser/userscripts/* .config/qutebrowser/userscripts/
+cp -r ~/.config/qutebrowser/userscripts/. .config/qutebrowser/userscripts/
 # === STARSHIP ===
 cp ~/.config/starship.toml .config/

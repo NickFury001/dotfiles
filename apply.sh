@@ -73,6 +73,83 @@ else
     sudo pacman -Syu --noconfirm > /dev/null 2>&1
 fi
 
+# === FASTFETCH ===
+draw_progress "Installing Fastfetch..."
+pacinstall fastfetch
+mkdir -p ~/.config/fastfetch
+cp .config/fastfetch/config.jsonc ~/.config/fastfetch/
+mkdir -p ~/Ricing/Custom\ Icons/
+cp Ricing/Custom\ Icons/Arch_Linux_2D_Icon.png ~/Ricing/Custom\ Icons/
+
+# === FISH ===
+draw_progress "Installing Fish..."
+pacinstall fish
+mkdir -p ~/.config/fish
+cp .config/fish/config.fish ~/.config/fish/
+# Fix: chsh prompts for a password unless run as sudo
+if [[ $DEBUG -eq 1 ]]; then
+    sudo chsh -s "$(command -v fish)" "$USER"
+else
+    sudo chsh -s "$(command -v fish)" "$USER" > /dev/null 2>&1
+fi
+
+# === HYPRLAND ===
+draw_progress "Installing Hyprland..."
+pacinstall hyprland
+mkdir -p ~/.config/hypr
+cp .config/hypr/hyprland.lua ~/.config/hypr/
+
+# === HYPRPAPER ===
+draw_progress "Installing Hyprpaper..."
+pacinstall hyprpaper
+mkdir -p ~/.config/hypr/
+cp .config/hypr/hyprpaper.conf ~/.config/hypr/
+mkdir -p ~/Ricing/Wallpapers
+cp Ricing/Wallpapers/Cedeira.jpg ~/Ricing/Wallpapers/
+
+# === JETBRAINS MONO NERD FONT ===
+draw_progress "Installing JetBrains Mono Nerd Font..."
+pacinstall ttf-jetbrains-mono-nerd
+
+# === KITTY ===
+draw_progress "Installing Kitty..."
+pacinstall kitty
+mkdir -p ~/.config/kitty
+cp .config/kitty/kitty.conf ~/.config/kitty/
+
+# === NEOVIM ===
+draw_progress "Installing Neovim..."
+pacinstall neovim
+mkdir -p ~/.config/nvim
+cp -r .config/nvim/. ~/.config/nvim/
+pacinstall lua-language-server
+if [[ $DEBUG -eq 1 ]]; then
+    nvim --headless "+TSInstall qmljs" +qa
+else
+    nvim --headless "+TSInstall qmljs" +qa > /dev/null 2>&1
+fi
+
+# === QUICKSHELL ===
+draw_progress "Installing Quickshell..."
+pacinstall quickshell
+mkdir -p ~/.config/quickshell
+cp -r .config/quickshell/. ~/.config/quickshell/
+
+# === QUTEBROWSER ===
+draw_progress "Installing Qutebrowser..."
+pacinstall qutebrowser
+mkdir -p ~/.config/qutebrowser/userscripts
+cp -r .config/qutebrowser/userscripts/. ~/.config/qutebrowser/userscripts/
+
+# === STARSHIP ===
+draw_progress "Installing Starship..."
+pacinstall starship
+cp .config/starship.toml ~/.config/
+
+# === SUPERFILE ===
+draw_progress "Installing Superfile..."
+pacinstall superfile
+
 # === YAY ===
 draw_progress "Installing yay..."
 pacinstall --needed base-devel go
@@ -87,83 +164,6 @@ else
 fi
 cd ..
 rm -rf yay
-
-# === HYPRLAND ===
-draw_progress "Installing Hyprland..."
-pacinstall hyprland
-mkdir -p ~/.config/hypr
-cp .config/hypr/hyprland.lua ~/.config/hypr/hyprland.lua
-
-# === KITTY ===
-draw_progress "Installing Kitty..."
-pacinstall kitty
-mkdir -p ~/.config/kitty
-cp .config/kitty/kitty.conf ~/.config/kitty/kitty.conf
-
-# === JETBRAINS MONO NERD FONT ===
-draw_progress "Installing JetBrains Mono Nerd Font..."
-pacinstall ttf-jetbrains-mono-nerd
-
-# === FISH ===
-draw_progress "Installing Fish..."
-pacinstall fish
-mkdir -p ~/.config/fish
-cp .config/fish/config.fish ~/.config/fish/config.fish
-# Fix: chsh prompts for a password unless run as sudo
-if [[ $DEBUG -eq 1 ]]; then
-    sudo chsh -s "$(command -v fish)" "$USER"
-else
-    sudo chsh -s "$(command -v fish)" "$USER" > /dev/null 2>&1
-fi
-
-# === NEOVIM ===
-draw_progress "Installing Neovim..."
-pacinstall neovim
-mkdir -p ~/.config/nvim
-cp -r .config/nvim/. ~/.config/nvim/
-pacinstall lua-language-server
-if [[ $DEBUG -eq 1 ]]; then
-    nvim --headless "+TSInstall qmljs" +qa
-else
-    nvim --headless "+TSInstall qmljs" +qa > /dev/null 2>&1
-fi
-
-# === STARSHIP ===
-draw_progress "Installing Starship..."
-pacinstall starship
-cp .config/starship.toml ~/.config/starship.toml
-
-# === SUPERFILE ===
-draw_progress "Installing Superfile..."
-pacinstall superfile
-
-# === HYPRPAPER ===
-draw_progress "Installing Hyprpaper..."
-pacinstall hyprpaper
-mkdir -p ~/.config/hypr/
-cp .config/hypr/hyprpaper.conf ~/.config/hypr/hyprpaper.conf
-mkdir -p ~/Ricing/Wallpapers
-cp Ricing/Wallpapers/Cedeira.jpg ~/Ricing/Wallpapers/Cedeira.jpg
-
-# === QUTEBROWSER ===
-draw_progress "Installing Qutebrowser..."
-pacinstall qutebrowser
-mkdir -p ~/.config/qutebrowser/userscripts
-cp .config/qutebrowser/userscripts/* ~/.config/qutebrowser/userscripts
-
-# === FASTFETCH ===
-draw_progress "Installing Fastfetch..."
-pacinstall fastfetch
-mkdir -p ~/.config/fastfetch
-cp .config/fastfetch/config.jsonc ~/.config/fastfetch/config.jsonc
-mkdir -p ~/Ricing/Custom\ Icons/
-cp Ricing/Custom\ Icons/Arch_Linux_2D_Icon.png ~/Ricing/Custom\ Icons/
-
-# === QUICKSHELL ===
-draw_progress "Installing Quickshell..."
-pacinstall quickshell
-mkdir -p ~/.config/quickshell
-cp .config/quickshell/* ~/.config/quickshell/
 
 # === 1PASSWORD ===
 draw_progress "Installing 1Password..."
