@@ -99,6 +99,9 @@ pacinstall kitty
 mkdir -p ~/.config/kitty
 cp .config/kitty/kitty.conf ~/.config/kitty/kitty.conf
 
+# === JETBRAINS MONO NERD FONT ===
+draw_progress "Installing JetBrains Mono Nerd Font..."
+pacinstall ttf-jetbrains-mono-nerd
 # === FISH ===
 draw_progress "Installing Fish..."
 pacinstall fish
