@@ -171,7 +171,7 @@ pacinstall jq wl-clipboard
 yayinstall 1password-cli
 
 # === QVIEW ===
-draw_process "Installing QView..."
+draw_progress "Installing QView..."
 yayinstall qview
 
 # When the setup is complete, go into hyprland
