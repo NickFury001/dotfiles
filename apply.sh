@@ -3,8 +3,11 @@
 
 # Keep sudo
 sudo -v
+
 while true; do 
-    sudo -n true
+    # -v updates the cached credentials
+    # -n ensures the background loop fails silently instead of hanging the script if it somehow expires
+    sudo -n -v 2>/dev/null
     sleep 60
     kill -0 "$$" 2>/dev/null || exit
 done &
