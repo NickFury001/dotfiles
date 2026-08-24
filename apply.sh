@@ -75,7 +75,7 @@ fi
 
 # === FASTFETCH ===
 draw_progress "Installing Fastfetch..."
-pacinstall fastfetch
+pacinstall fastfetch Magick
 mkdir -p ~/.config/fastfetch
 cp .config/fastfetch/config.jsonc ~/.config/fastfetch/
 mkdir -p ~/Ricing/Custom\ Icons/
