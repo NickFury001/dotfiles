@@ -17,7 +17,7 @@ if [[ "$1" == "--debug" ]]; then
 fi
 
 # Set the total number of steps to calculate the percentage
-TOTAL_STEPS=15
+TOTAL_STEPS=16
 CURRENT_STEP=0
 
 # Progress bar function suitable for TTY
@@ -176,4 +176,8 @@ yayinstall qview
 
 # When the setup is complete, go into hyprland
 
+draw_progress "Cleaning up..."
+cd ~/
+rm -rf dotfiles
+sleep 2
 start-hyprland
