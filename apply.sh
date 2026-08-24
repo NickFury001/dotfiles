@@ -17,7 +17,7 @@ if [[ "$1" == "--debug" ]]; then
 fi
 
 # Set the total number of steps to calculate the percentage
-TOTAL_STEPS=14
+TOTAL_STEPS=15
 CURRENT_STEP=0
 
 # Progress bar function suitable for TTY
@@ -170,6 +170,9 @@ draw_progress "Installing 1Password..."
 pacinstall jq wl-clipboard
 yayinstall 1password-cli
 
+# === QVIEW ===
+draw_process "Installing QView..."
+yayinstall qview
 
 # When the setup is complete, go into hyprland
 
