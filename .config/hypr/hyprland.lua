@@ -36,7 +36,7 @@ hl.monitor({
 
 -- Set programs that you use
 local terminal = "kitty"
-local fileManager = "kitty --hold spf"
+local fileManager = "kitty -o confirm_os_window_close=0 --hold spf"
 local menu = "hyprlauncher"
 local browser = "qutebrowser --qt-flag disable-gpu"
 
@@ -324,8 +324,8 @@ hl.bind("XF86AudioPlay",  hl.dsp.exec_cmd("playerctl play-pause"), { locked = tr
 hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = true })
 
 -- Screenshot utilities
-hl.bind("Print", hl.dsp.exec_cmd('grim - | swappy -f -'))
-hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd('grim -g "$(slurp)" - | swappy -f -'))
+-- hl.bind("Print", hl.dsp.exec_cmd('grim - | swappy -f -'))
+hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd('mark-shot'))
 
 -- Screen Recording Utilities
 hl.bind(mainMod .. " + R", hl.dsp.send_shortcut({ mods = "CTRL_SHIFT_ALT", key = "R", window = "class:^(com\\.obsproject\\.Studio)$" }))
@@ -340,8 +340,8 @@ hl.bind("CTRL + ALT + SHIFT + DELETE", hl.dsp.exec_cmd("shutdown now"))
 hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("noctalia msg panel-open clipboard"))
 
 -- Window Switcher
-hl.bind("ALT + Tab", hl.dsp.exec_cmd("snappy-switcher next --mod alt"))
-hl.bind("SUPER + TAB", hl.dsp.exec_cmd("snappy-switcher next --workspace --mod super"))
+hl.bind("ALT + Tab", hl.dsp.exec_cmd("snappy-switcher --workspace next --mod alt"))
+hl.bind("SUPER + TAB", hl.dsp.exec_cmd("snappy-switcher next --mod super"))
 
 
 --------------------------------
