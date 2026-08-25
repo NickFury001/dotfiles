@@ -131,7 +131,7 @@ fi
 
 # === QUICKSHELL ===
 draw_progress "Installing Quickshell..."
-pacinstall quickshell
+pacinstall quickshell networkmanager
 mkdir -p ~/.config/quickshell
 cp -r .config/quickshell/. ~/.config/quickshell/
 
