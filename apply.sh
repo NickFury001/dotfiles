@@ -20,6 +20,8 @@ fi
 TOTAL_STEPS=21
 CURRENT_STEP=0
 
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}"
+
 # Progress bar function suitable for TTY
 draw_progress() {
     local message="$1"
@@ -76,16 +78,16 @@ fi
 # === FASTFETCH ===
 draw_progress "Installing Fastfetch..."
 pacinstall fastfetch imagemagick
-mkdir -p ~/.config/fastfetch
-cp .config/fastfetch/config.jsonc ~/.config/fastfetch/
-mkdir -p ~/Ricing/Custom\ Icons/
-cp Ricing/Custom\ Icons/Arch_Linux_2D_Icon.png ~/Ricing/Custom\ Icons/
+mkdir -p "$CONFIG_DIR/fastfetch"
+cp .config/fastfetch/config.jsonc "$CONFIG_DIR/fastfetch/"
+mkdir -p "~/Ricing/Custom\ Icons/"
+cp Ricing/Custom\ Icons/Arch_Linux_2D_Icon.png "~/Ricing/Custom\ Icons/"
 
 # === FISH ===
 draw_progress "Installing Fish..."
 pacinstall fish
-mkdir -p ~/.config/fish
-cp .config/fish/config.fish ~/.config/fish/
+mkdir -p "$CONFIG_DIR/fish"
+cp .config/fish/config.fish "$CONFIG_DIR/fish/"
 # Fix: chsh prompts for a password unless run as sudo
 if [[ $DEBUG -eq 1 ]]; then
     sudo chsh -s "$(command -v fish)" "$USER"
@@ -96,16 +98,16 @@ fi
 # === HYPRLAND ===
 draw_progress "Installing Hyprland..."
 pacinstall hyprland hyprlauncher
-mkdir -p ~/.config/hypr
-cp .config/hypr/hyprland.lua ~/.config/hypr/
+mkdir -p "$CONFIG_DIR/hypr"
+cp .config/hypr/hyprland.lua "$CONFIG_DIR/hypr/"
 
 # === HYPRPAPER ===
 draw_progress "Installing Hyprpaper..."
 pacinstall hyprpaper
-mkdir -p ~/.config/hypr/
-cp .config/hypr/hyprpaper.conf ~/.config/hypr/
-mkdir -p ~/Ricing/Wallpapers
-cp Ricing/Wallpapers/Cedeira.jpg ~/Ricing/Wallpapers/
+mkdir -p "$CONFIG_DIR/hypr/"
+cp .config/hypr/hyprpaper.conf "$CONFIG_DIR/hypr/"
+mkdir -p "~/Ricing/Wallpapers"
+cp Ricing/Wallpapers/Cedeira.jpg "~/Ricing/Wallpapers/"
 
 # === JETBRAINS MONO NERD FONT ===
 draw_progress "Installing JetBrains Mono Nerd Font..."
@@ -114,14 +116,14 @@ pacinstall ttf-jetbrains-mono-nerd
 # === KITTY ===
 draw_progress "Installing Kitty..."
 pacinstall kitty
-mkdir -p ~/.config/kitty
-cp .config/kitty/kitty.conf ~/.config/kitty/
+mkdir -p "$CONFIG_DIR/kitty"
+cp .config/kitty/kitty.conf "$CONFIG_DIR/kitty/"
 
 # === NEOVIM ===
 draw_progress "Installing Neovim..."
 pacinstall neovim
-mkdir -p ~/.config/nvim
-cp -r .config/nvim/. ~/.config/nvim/
+mkdir -p "$CONFIG_DIR/nvim"
+cp -r .config/nvim/. "$CONFIG_DIR/nvim/"
 pacinstall lua-language-server
 if [[ $DEBUG -eq 1 ]]; then
     nvim --headless "+TSInstall qmljs" +qa
@@ -132,19 +134,19 @@ fi
 # === QUICKSHELL ===
 draw_progress "Installing Quickshell..."
 pacinstall quickshell networkmanager brightnessctl
-mkdir -p ~/.config/quickshell
-cp -r .config/quickshell/. ~/.config/quickshell/
+mkdir -p "$CONFIG_DIR/quickshell"
+cp -r .config/quickshell/. "$CONFIG_DIR/quickshell/"
 
 # === QUTEBROWSER ===
 draw_progress "Installing Qutebrowser..."
 pacinstall qutebrowser
-mkdir -p ~/.config/qutebrowser/userscripts
-cp -r .config/qutebrowser/userscripts/. ~/.config/qutebrowser/userscripts/
+mkdir -p "$CONFIG_DIR/qutebrowser/userscripts"
+cp -r .config/qutebrowser/userscripts/. "$CONFIG_DIR/qutebrowser/userscripts/"
 
 # === STARSHIP ===
 draw_progress "Installing Starship..."
 pacinstall starship
-cp .config/starship.toml ~/.config/
+cp .config/starship.toml "$CONFIG_DIR/"
 
 # === SUPERFILE ===
 draw_progress "Installing Superfile..."
@@ -196,7 +198,7 @@ yayinstall snappy-switcher
 
 # When the setup is complete, go into hyprland
 draw_progress "Cleaning up..."
-cd ~/
+cd ..
 rm -rf dotfiles
 sleep 2
 start-hyprland
