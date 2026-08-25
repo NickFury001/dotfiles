@@ -17,7 +17,7 @@ if [[ "$1" == "--debug" ]]; then
 fi
 
 # Set the total number of steps to calculate the percentage
-TOTAL_STEPS=17
+TOTAL_STEPS=18
 CURRENT_STEP=0
 
 # Progress bar function suitable for TTY
@@ -177,6 +177,10 @@ yayinstall qview
 # === SSH ===
 draw_progress "Installing SSH..."
 pacinstall openssh
+
+# === LESS ===
+draw_progress "Installing less..."
+pacinstall less
 
 # When the setup is complete, go into hyprland
 draw_progress "Cleaning up..."
