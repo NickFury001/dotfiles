@@ -17,7 +17,7 @@ if [[ "$1" == "--debug" ]]; then
 fi
 
 # Set the total number of steps to calculate the percentage
-TOTAL_STEPS=16
+TOTAL_STEPS=17
 CURRENT_STEP=0
 
 # Progress bar function suitable for TTY
@@ -95,7 +95,7 @@ fi
 
 # === HYPRLAND ===
 draw_progress "Installing Hyprland..."
-pacinstall hyprland
+pacinstall hyprland hyprlauncher
 mkdir -p ~/.config/hypr
 cp .config/hypr/hyprland.lua ~/.config/hypr/
 
@@ -131,7 +131,7 @@ fi
 
 # === QUICKSHELL ===
 draw_progress "Installing Quickshell..."
-pacinstall quickshell networkmanager
+pacinstall quickshell networkmanager brightnessctl
 mkdir -p ~/.config/quickshell
 cp -r .config/quickshell/. ~/.config/quickshell/
 
@@ -168,14 +168,17 @@ rm -rf yay
 # === 1PASSWORD ===
 draw_progress "Installing 1Password..."
 pacinstall jq wl-clipboard
-yayinstall 1password-cli
+yayinstall 1password-cli 1password
 
 # === QVIEW ===
 draw_progress "Installing QView..."
 yayinstall qview
 
-# When the setup is complete, go into hyprland
+# === SSH ===
+draw_progress "Installing SSH..."
+pacinstall openssh
 
+# When the setup is complete, go into hyprland
 draw_progress "Cleaning up..."
 cd ~/
 rm -rf dotfiles
