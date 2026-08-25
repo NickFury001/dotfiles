@@ -75,7 +75,7 @@ fi
 
 # === FASTFETCH ===
 draw_progress "Installing Fastfetch..."
-pacinstall fastfetch Magick
+pacinstall fastfetch imagemagick
 mkdir -p ~/.config/fastfetch
 cp .config/fastfetch/config.jsonc ~/.config/fastfetch/
 mkdir -p ~/Ricing/Custom\ Icons/
@@ -180,4 +180,4 @@ draw_progress "Cleaning up..."
 cd ~/
 rm -rf dotfiles
 sleep 2
-start-hyprland
+Hyprland
