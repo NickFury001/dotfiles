@@ -1,0 +1,3975 @@
+Directory structure:
+└── dotfiles/
+    ├── README.md
+    ├── apply.sh
+    ├── backup.sh
+    ├── LICENSE
+    └── .config/
+        ├── starship.toml
+        ├── fastfetch/
+        │   └── config.jsonc
+        ├── fish/
+        │   └── config.fish
+        ├── hypr/
+        │   ├── hyprland.lua
+        │   └── hyprpaper.conf
+        ├── kitty/
+        │   └── kitty.conf
+        ├── nvim/
+        │   ├── init.lua
+        │   ├── lazy-lock.json
+        │   └── lua/
+        │       ├── config/
+        │       │   ├── custom.lua
+        │       │   ├── init.lua
+        │       │   ├── lazy.lua
+        │       │   ├── lsp.lua
+        │       │   └── remap.lua
+        │       ├── lsp/
+        │       │   ├── lua_ls.lua
+        │       │   └── qmlls.lua
+        │       └── plugins/
+        │           ├── colorizer.lua
+        │           ├── lspconfig.lua
+        │           ├── telescope.lua
+        │           └── treesitter.lua
+        ├── quickshell/
+        │   ├── Bar.qml
+        │   ├── ClockWidget.qml
+        │   ├── launcher.qml
+        │   ├── shell.qml
+        │   └── Time.qml
+        └── qutebrowser/
+            └── userscripts/
+                └── tool_1pass
+
+================================================
+FILE: README.md
+================================================
+# My dotfiles
+This repository exists mainly to help me keep track of changes I make to my own rice. The repository will be public so that other people can try it out for themselves and/or use this as a baseline for their own rices.
+
+
+================================================
+FILE: apply.sh
+================================================
+#!/bin/bash
+# Tip: Start with a blank arch
+
+# Authenticate upfront
+sudo -v
+
+# Temporarily disable sudo password prompts for the installer to prevent TTY corruption
+echo "$USER ALL=(ALL) NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$USER-installer" > /dev/null
+
+# Ensure the temporary sudoers file is removed when the script exits (success, failure, or Ctrl+C)
+trap 'sudo rm -f "/etc/sudoers.d/$USER-installer"' EXIT
+
+DEBUG=0
+if [[ "$1" == "--debug" ]]; then
+    DEBUG=1
+    echo "Debug mode enabled: pacman will ask for confirmation and show output."
+fi
+
+# Set the total number of steps to calculate the percentage
+TOTAL_STEPS=16
+CURRENT_STEP=0
+
+# Progress bar function suitable for TTY
+draw_progress() {
+    local message="$1"
+    ((CURRENT_STEP++))
+    
+    # If in debug mode, just print the step instead of the bar
+    if [[ $DEBUG -eq 1 ]]; then
+        echo -e "\n---> Step $CURRENT_STEP/$TOTAL_STEPS: $message <---"
+        return
+    fi
+
+    local width=40
+    local percent=$(( CURRENT_STEP * 100 / TOTAL_STEPS ))
+    local filled=$(( percent * width / 100 ))
+    local empty=$(( width - filled ))
+    
+    local bar=""
+    for ((i=0; i<filled; i++)); do bar+="#"; done
+    for ((i=0; i<empty; i++)); do bar+=" "; done
+    
+    # \r moves cursor to the beginning of the line
+    # \033[2K clears the current line in the TTY
+    printf "\r\033[2K[%s] %3d%% | %s" "$bar" "$percent" "$message"
+    
+    if [[ $CURRENT_STEP -eq $TOTAL_STEPS ]]; then
+        echo -e "\nInstallation complete!"
+    fi
+}
+
+pacinstall() {
+    if [[ $DEBUG -eq 1 ]]; then
+        sudo pacman -S "$@"
+    else
+        sudo pacman -S --noconfirm "$@" > /dev/null 2>&1
+    fi
+}
+
+yayinstall() {
+    if [[ $DEBUG -eq 1 ]]; then
+        yay -S "$@"
+    else
+        yay -S --noconfirm --quiet "$@" > /dev/null 2>&1
+    fi
+}
+
+# === UPDATE SYSTEM ===
+draw_progress "Updating system..."
+if [[ $DEBUG -eq 1 ]]; then
+    sudo pacman -Syu
+else
+    sudo pacman -Syu --noconfirm > /dev/null 2>&1
+fi
+
+# === FASTFETCH ===
+draw_progress "Installing Fastfetch..."
+pacinstall fastfetch imagemagick
+mkdir -p ~/.config/fastfetch
+cp .config/fastfetch/config.jsonc ~/.config/fastfetch/
+mkdir -p ~/Ricing/Custom\ Icons/
+cp Ricing/Custom\ Icons/Arch_Linux_2D_Icon.png ~/Ricing/Custom\ Icons/
+
+# === FISH ===
+draw_progress "Installing Fish..."
+pacinstall fish
+mkdir -p ~/.config/fish
+cp .config/fish/config.fish ~/.config/fish/
+# Fix: chsh prompts for a password unless run as sudo
+if [[ $DEBUG -eq 1 ]]; then
+    sudo chsh -s "$(command -v fish)" "$USER"
+else
+    sudo chsh -s "$(command -v fish)" "$USER" > /dev/null 2>&1
+fi
+
+# === HYPRLAND ===
+draw_progress "Installing Hyprland..."
+pacinstall hyprland
+mkdir -p ~/.config/hypr
+cp .config/hypr/hyprland.lua ~/.config/hypr/
+
+# === HYPRPAPER ===
+draw_progress "Installing Hyprpaper..."
+pacinstall hyprpaper
+mkdir -p ~/.config/hypr/
+cp .config/hypr/hyprpaper.conf ~/.config/hypr/
+mkdir -p ~/Ricing/Wallpapers
+cp Ricing/Wallpapers/Cedeira.jpg ~/Ricing/Wallpapers/
+
+# === JETBRAINS MONO NERD FONT ===
+draw_progress "Installing JetBrains Mono Nerd Font..."
+pacinstall ttf-jetbrains-mono-nerd
+
+# === KITTY ===
+draw_progress "Installing Kitty..."
+pacinstall kitty
+mkdir -p ~/.config/kitty
+cp .config/kitty/kitty.conf ~/.config/kitty/
+
+# === NEOVIM ===
+draw_progress "Installing Neovim..."
+pacinstall neovim
+mkdir -p ~/.config/nvim
+cp -r .config/nvim/. ~/.config/nvim/
+pacinstall lua-language-server
+if [[ $DEBUG -eq 1 ]]; then
+    nvim --headless "+TSInstall qmljs" +qa
+else
+    nvim --headless "+TSInstall qmljs" +qa > /dev/null 2>&1
+fi
+
+# === QUICKSHELL ===
+draw_progress "Installing Quickshell..."
+pacinstall quickshell
+mkdir -p ~/.config/quickshell
+cp -r .config/quickshell/. ~/.config/quickshell/
+
+# === QUTEBROWSER ===
+draw_progress "Installing Qutebrowser..."
+pacinstall qutebrowser
+mkdir -p ~/.config/qutebrowser/userscripts
+cp -r .config/qutebrowser/userscripts/. ~/.config/qutebrowser/userscripts/
+
+# === STARSHIP ===
+draw_progress "Installing Starship..."
+pacinstall starship
+cp .config/starship.toml ~/.config/
+
+# === SUPERFILE ===
+draw_progress "Installing Superfile..."
+pacinstall superfile
+
+# === YAY ===
+draw_progress "Installing yay..."
+pacinstall --needed base-devel go
+if [[ $DEBUG -eq 1 ]]; then
+    git clone https://aur.archlinux.org/yay.git
+    cd yay || exit
+    makepkg -si
+else
+    git clone https://aur.archlinux.org/yay.git > /dev/null 2>&1
+    cd yay || exit
+    makepkg -si --noconfirm > /dev/null 2>&1
+fi
+cd ..
+rm -rf yay
+
+# === 1PASSWORD ===
+draw_progress "Installing 1Password..."
+pacinstall jq wl-clipboard
+yayinstall 1password-cli
+
+# === QVIEW ===
+draw_progress "Installing QView..."
+yayinstall qview
+
+# When the setup is complete, go into hyprland
+
+draw_progress "Cleaning up..."
+cd ~/
+rm -rf dotfiles
+sleep 2
+start-hyprland
+
+
+
+================================================
+FILE: backup.sh
+================================================
+#!/bin/bash
+
+# === FASTFETCH ===
+cp ~/.config/fastfetch/config.jsonc .config/fastfetch/
+# === FISH ===
+cp ~/.config/fish/config.fish .config/fish/
+# === HYPRLAND ===
+cp ~/.config/hypr/hyprland.lua .config/hypr/
+# === HYPRPAPER ===
+cp ~/.config/hypr/hyprpaper.conf .config/hypr/
+# === KITTY ===
+cp ~/.config/kitty/kitty.conf .config/kitty/
+# === NVIM ===
+cp -r ~/.config/nvim/. .config/nvim/
+# === QUICKSHELL ===
+cp -r ~/.config/quickshell/. .config/quickshell/
+# === QUTEBROWSER ===
+cp -r ~/.config/qutebrowser/userscripts/. .config/qutebrowser/userscripts/
+# === STARSHIP ===
+cp ~/.config/starship.toml .config/
+
+
+
+================================================
+FILE: LICENSE
+================================================
+                    GNU AFFERO GENERAL PUBLIC LICENSE
+                       Version 3, 19 November 2007
+
+ Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.
+
+                            Preamble
+
+  The GNU Affero General Public License is a free, copyleft license for
+software and other kinds of works, specifically designed to ensure
+cooperation with the community in the case of network server software.
+
+  The licenses for most software and other practical works are designed
+to take away your freedom to share and change the works.  By contrast,
+our General Public Licenses are intended to guarantee your freedom to
+share and change all versions of a program--to make sure it remains free
+software for all its users.
+
+  When we speak of free software, we are referring to freedom, not
+price.  Our General Public Licenses are designed to make sure that you
+have the freedom to distribute copies of free software (and charge for
+them if you wish), that you receive source code or can get it if you
+want it, that you can change the software or use pieces of it in new
+free programs, and that you know you can do these things.
+
+  Developers that use our General Public Licenses protect your rights
+with two steps: (1) assert copyright on the software, and (2) offer
+you this License which gives you legal permission to copy, distribute
+and/or modify the software.
+
+  A secondary benefit of defending all users' freedom is that
+improvements made in alternate versions of the program, if they
+receive widespread use, become available for other developers to
+incorporate.  Many developers of free software are heartened and
+encouraged by the resulting cooperation.  However, in the case of
+software used on network servers, this result may fail to come about.
+The GNU General Public License permits making a modified version and
+letting the public access it on a server without ever releasing its
+source code to the public.
+
+  The GNU Affero General Public License is designed specifically to
+ensure that, in such cases, the modified source code becomes available
+to the community.  It requires the operator of a network server to
+provide the source code of the modified version running there to the
+users of that server.  Therefore, public use of a modified version, on
+a publicly accessible server, gives the public access to the source
+code of the modified version.
+
+  An older license, called the Affero General Public License and
+published by Affero, was designed to accomplish similar goals.  This is
+a different license, not a version of the Affero GPL, but Affero has
+released a new version of the Affero GPL which permits relicensing under
+this license.
+
+  The precise terms and conditions for copying, distribution and
+modification follow.
+
+                       TERMS AND CONDITIONS
+
+  0. Definitions.
+
+  "This License" refers to version 3 of the GNU Affero General Public License.
+
+  "Copyright" also means copyright-like laws that apply to other kinds of
+works, such as semiconductor masks.
+
+  "The Program" refers to any copyrightable work licensed under this
+License.  Each licensee is addressed as "you".  "Licensees" and
+"recipients" may be individuals or organizations.
+
+  To "modify" a work means to copy from or adapt all or part of the work
+in a fashion requiring copyright permission, other than the making of an
+exact copy.  The resulting work is called a "modified version" of the
+earlier work or a work "based on" the earlier work.
+
+  A "covered work" means either the unmodified Program or a work based
+on the Program.
+
+  To "propagate" a work means to do anything with it that, without
+permission, would make you directly or secondarily liable for
+infringement under applicable copyright law, except executing it on a
+computer or modifying a private copy.  Propagation includes copying,
+distribution (with or without modification), making available to the
+public, and in some countries other activities as well.
+
+  To "convey" a work means any kind of propagation that enables other
+parties to make or receive copies.  Mere interaction with a user through
+a computer network, with no transfer of a copy, is not conveying.
+
+  An interactive user interface displays "Appropriate Legal Notices"
+to the extent that it includes a convenient and prominently visible
+feature that (1) displays an appropriate copyright notice, and (2)
+tells the user that there is no warranty for the work (except to the
+extent that warranties are provided), that licensees may convey the
+work under this License, and how to view a copy of this License.  If
+the interface presents a list of user commands or options, such as a
+menu, a prominent item in the list meets this criterion.
+
+  1. Source Code.
+
+  The "source code" for a work means the preferred form of the work
+for making modifications to it.  "Object code" means any non-source
+form of a work.
+
+  A "Standard Interface" means an interface that either is an official
+standard defined by a recognized standards body, or, in the case of
+interfaces specified for a particular programming language, one that
+is widely used among developers working in that language.
+
+  The "System Libraries" of an executable work include anything, other
+than the work as a whole, that (a) is included in the normal form of
+packaging a Major Component, but which is not part of that Major
+Component, and (b) serves only to enable use of the work with that
+Major Component, or to implement a Standard Interface for which an
+implementation is available to the public in source code form.  A
+"Major Component", in this context, means a major essential component
+(kernel, window system, and so on) of the specific operating system
+(if any) on which the executable work runs, or a compiler used to
+produce the work, or an object code interpreter used to run it.
+
+  The "Corresponding Source" for a work in object code form means all
+the source code needed to generate, install, and (for an executable
+work) run the object code and to modify the work, including scripts to
+control those activities.  However, it does not include the work's
+System Libraries, or general-purpose tools or generally available free
+programs which are used unmodified in performing those activities but
+which are not part of the work.  For example, Corresponding Source
+includes interface definition files associated with source files for
+the work, and the source code for shared libraries and dynamically
+linked subprograms that the work is specifically designed to require,
+such as by intimate data communication or control flow between those
+subprograms and other parts of the work.
+
+  The Corresponding Source need not include anything that users
+can regenerate automatically from other parts of the Corresponding
+Source.
+
+  The Corresponding Source for a work in source code form is that
+same work.
+
+  2. Basic Permissions.
+
+  All rights granted under this License are granted for the term of
+copyright on the Program, and are irrevocable provided the stated
+conditions are met.  This License explicitly affirms your unlimited
+permission to run the unmodified Program.  The output from running a
+covered work is covered by this License only if the output, given its
+content, constitutes a covered work.  This License acknowledges your
+rights of fair use or other equivalent, as provided by copyright law.
+
+  You may make, run and propagate covered works that you do not
+convey, without conditions so long as your license otherwise remains
+in force.  You may convey covered works to others for the sole purpose
+of having them make modifications exclusively for you, or provide you
+with facilities for running those works, provided that you comply with
+the terms of this License in conveying all material for which you do
+not control copyright.  Those thus making or running the covered works
+for you must do so exclusively on your behalf, under your direction
+and control, on terms that prohibit them from making any copies of
+your copyrighted material outside their relationship with you.
+
+  Conveying under any other circumstances is permitted solely under
+the conditions stated below.  Sublicensing is not allowed; section 10
+makes it unnecessary.
+
+  3. Protecting Users' Legal Rights From Anti-Circumvention Law.
+
+  No covered work shall be deemed part of an effective technological
+measure under any applicable law fulfilling obligations under article
+11 of the WIPO copyright treaty adopted on 20 December 1996, or
+similar laws prohibiting or restricting circumvention of such
+measures.
+
+  When you convey a covered work, you waive any legal power to forbid
+circumvention of technological measures to the extent such circumvention
+is effected by exercising rights under this License with respect to
+the covered work, and you disclaim any intention to limit operation or
+modification of the work as a means of enforcing, against the work's
+users, your or third parties' legal rights to forbid circumvention of
+technological measures.
+
+  4. Conveying Verbatim Copies.
+
+  You may convey verbatim copies of the Program's source code as you
+receive it, in any medium, provided that you conspicuously and
+appropriately publish on each copy an appropriate copyright notice;
+keep intact all notices stating that this License and any
+non-permissive terms added in accord with section 7 apply to the code;
+keep intact all notices of the absence of any warranty; and give all
+recipients a copy of this License along with the Program.
+
+  You may charge any price or no price for each copy that you convey,
+and you may offer support or warranty protection for a fee.
+
+  5. Conveying Modified Source Versions.
+
+  You may convey a work based on the Program, or the modifications to
+produce it from the Program, in the form of source code under the
+terms of section 4, provided that you also meet all of these conditions:
+
+    a) The work must carry prominent notices stating that you modified
+    it, and giving a relevant date.
+
+    b) The work must carry prominent notices stating that it is
+    released under this License and any conditions added under section
+    7.  This requirement modifies the requirement in section 4 to
+    "keep intact all notices".
+
+    c) You must license the entire work, as a whole, under this
+    License to anyone who comes into possession of a copy.  This
+    License will therefore apply, along with any applicable section 7
+    additional terms, to the whole of the work, and all its parts,
+    regardless of how they are packaged.  This License gives no
+    permission to license the work in any other way, but it does not
+    invalidate such permission if you have separately received it.
+
+    d) If the work has interactive user interfaces, each must display
+    Appropriate Legal Notices; however, if the Program has interactive
+    interfaces that do not display Appropriate Legal Notices, your
+    work need not make them do so.
+
+  A compilation of a covered work with other separate and independent
+works, which are not by their nature extensions of the covered work,
+and which are not combined with it such as to form a larger program,
+in or on a volume of a storage or distribution medium, is called an
+"aggregate" if the compilation and its resulting copyright are not
+used to limit the access or legal rights of the compilation's users
+beyond what the individual works permit.  Inclusion of a covered work
+in an aggregate does not cause this License to apply to the other
+parts of the aggregate.
+
+  6. Conveying Non-Source Forms.
+
+  You may convey a covered work in object code form under the terms
+of sections 4 and 5, provided that you also convey the
+machine-readable Corresponding Source under the terms of this License,
+in one of these ways:
+
+    a) Convey the object code in, or embodied in, a physical product
+    (including a physical distribution medium), accompanied by the
+    Corresponding Source fixed on a durable physical medium
+    customarily used for software interchange.
+
+    b) Convey the object code in, or embodied in, a physical product
+    (including a physical distribution medium), accompanied by a
+    written offer, valid for at least three years and valid for as
+    long as you offer spare parts or customer support for that product
+    model, to give anyone who possesses the object code either (1) a
+    copy of the Corresponding Source for all the software in the
+    product that is covered by this License, on a durable physical
+    medium customarily used for software interchange, for a price no
+    more than your reasonable cost of physically performing this
+    conveying of source, or (2) access to copy the
+    Corresponding Source from a network server at no charge.
+
+    c) Convey individual copies of the object code with a copy of the
+    written offer to provide the Corresponding Source.  This
+    alternative is allowed only occasionally and noncommercially, and
+    only if you received the object code with such an offer, in accord
+    with subsection 6b.
+
+    d) Convey the object code by offering access from a designated
+    place (gratis or for a charge), and offer equivalent access to the
+    Corresponding Source in the same way through the same place at no
+    further charge.  You need not require recipients to copy the
+    Corresponding Source along with the object code.  If the place to
+    copy the object code is a network server, the Corresponding Source
+    may be on a different server (operated by you or a third party)
+    that supports equivalent copying facilities, provided you maintain
+    clear directions next to the object code saying where to find the
+    Corresponding Source.  Regardless of what server hosts the
+    Corresponding Source, you remain obligated to ensure that it is
+    available for as long as needed to satisfy these requirements.
+
+    e) Convey the object code using peer-to-peer transmission, provided
+    you inform other peers where the object code and Corresponding
+    Source of the work are being offered to the general public at no
+    charge under subsection 6d.
+
+  A separable portion of the object code, whose source code is excluded
+from the Corresponding Source as a System Library, need not be
+included in conveying the object code work.
+
+  A "User Product" is either (1) a "consumer product", which means any
+tangible personal property which is normally used for personal, family,
+or household purposes, or (2) anything designed or sold for incorporation
+into a dwelling.  In determining whether a product is a consumer product,
+doubtful cases shall be resolved in favor of coverage.  For a particular
+product received by a particular user, "normally used" refers to a
+typical or common use of that class of product, regardless of the status
+of the particular user or of the way in which the particular user
+actually uses, or expects or is expected to use, the product.  A product
+is a consumer product regardless of whether the product has substantial
+commercial, industrial or non-consumer uses, unless such uses represent
+the only significant mode of use of the product.
+
+  "Installation Information" for a User Product means any methods,
+procedures, authorization keys, or other information required to install
+and execute modified versions of a covered work in that User Product from
+a modified version of its Corresponding Source.  The information must
+suffice to ensure that the continued functioning of the modified object
+code is in no case prevented or interfered with solely because
+modification has been made.
+
+  If you convey an object code work under this section in, or with, or
+specifically for use in, a User Product, and the conveying occurs as
+part of a transaction in which the right of possession and use of the
+User Product is transferred to the recipient in perpetuity or for a
+fixed term (regardless of how the transaction is characterized), the
+Corresponding Source conveyed under this section must be accompanied
+by the Installation Information.  But this requirement does not apply
+if neither you nor any third party retains the ability to install
+modified object code on the User Product (for example, the work has
+been installed in ROM).
+
+  The requirement to provide Installation Information does not include a
+requirement to continue to provide support service, warranty, or updates
+for a work that has been modified or installed by the recipient, or for
+the User Product in which it has been modified or installed.  Access to a
+network may be denied when the modification itself materially and
+adversely affects the operation of the network or violates the rules and
+protocols for communication across the network.
+
+  Corresponding Source conveyed, and Installation Information provided,
+in accord with this section must be in a format that is publicly
+documented (and with an implementation available to the public in
+source code form), and must require no special password or key for
+unpacking, reading or copying.
+
+  7. Additional Terms.
+
+  "Additional permissions" are terms that supplement the terms of this
+License by making exceptions from one or more of its conditions.
+Additional permissions that are applicable to the entire Program shall
+be treated as though they were included in this License, to the extent
+that they are valid under applicable law.  If additional permissions
+apply only to part of the Program, that part may be used separately
+under those permissions, but the entire Program remains governed by
+this License without regard to the additional permissions.
+
+  When you convey a copy of a covered work, you may at your option
+remove any additional permissions from that copy, or from any part of
+it.  (Additional permissions may be written to require their own
+removal in certain cases when you modify the work.)  You may place
+additional permissions on material, added by you to a covered work,
+for which you have or can give appropriate copyright permission.
+
+  Notwithstanding any other provision of this License, for material you
+add to a covered work, you may (if authorized by the copyright holders of
+that material) supplement the terms of this License with terms:
+
+    a) Disclaiming warranty or limiting liability differently from the
+    terms of sections 15 and 16 of this License; or
+
+    b) Requiring preservation of specified reasonable legal notices or
+    author attributions in that material or in the Appropriate Legal
+    Notices displayed by works containing it; or
+
+    c) Prohibiting misrepresentation of the origin of that material, or
+    requiring that modified versions of such material be marked in
+    reasonable ways as different from the original version; or
+
+    d) Limiting the use for publicity purposes of names of licensors or
+    authors of the material; or
+
+    e) Declining to grant rights under trademark law for use of some
+    trade names, trademarks, or service marks; or
+
+    f) Requiring indemnification of licensors and authors of that
+    material by anyone who conveys the material (or modified versions of
+    it) with contractual assumptions of liability to the recipient, for
+    any liability that these contractual assumptions directly impose on
+    those licensors and authors.
+
+  All other non-permissive additional terms are considered "further
+restrictions" within the meaning of section 10.  If the Program as you
+received it, or any part of it, contains a notice stating that it is
+governed by this License along with a term that is a further
+restriction, you may remove that term.  If a license document contains
+a further restriction but permits relicensing or conveying under this
+License, you may add to a covered work material governed by the terms
+of that license document, provided that the further restriction does
+not survive such relicensing or conveying.
+
+  If you add terms to a covered work in accord with this section, you
+must place, in the relevant source files, a statement of the
+additional terms that apply to those files, or a notice indicating
+where to find the applicable terms.
+
+  Additional terms, permissive or non-permissive, may be stated in the
+form of a separately written license, or stated as exceptions;
+the above requirements apply either way.
+
+  8. Termination.
+
+  You may not propagate or modify a covered work except as expressly
+provided under this License.  Any attempt otherwise to propagate or
+modify it is void, and will automatically terminate your rights under
+this License (including any patent licenses granted under the third
+paragraph of section 11).
+
+  However, if you cease all violation of this License, then your
+license from a particular copyright holder is reinstated (a)
+provisionally, unless and until the copyright holder explicitly and
+finally terminates your license, and (b) permanently, if the copyright
+holder fails to notify you of the violation by some reasonable means
+prior to 60 days after the cessation.
+
+  Moreover, your license from a particular copyright holder is
+reinstated permanently if the copyright holder notifies you of the
+violation by some reasonable means, this is the first time you have
+received notice of violation of this License (for any work) from that
+copyright holder, and you cure the violation prior to 30 days after
+your receipt of the notice.
+
+  Termination of your rights under this section does not terminate the
+licenses of parties who have received copies or rights from you under
+this License.  If your rights have been terminated and not permanently
+reinstated, you do not qualify to receive new licenses for the same
+material under section 10.
+
+  9. Acceptance Not Required for Having Copies.
+
+  You are not required to accept this License in order to receive or
+run a copy of the Program.  Ancillary propagation of a covered work
+occurring solely as a consequence of using peer-to-peer transmission
+to receive a copy likewise does not require acceptance.  However,
+nothing other than this License grants you permission to propagate or
+modify any covered work.  These actions infringe copyright if you do
+not accept this License.  Therefore, by modifying or propagating a
+covered work, you indicate your acceptance of this License to do so.
+
+  10. Automatic Licensing of Downstream Recipients.
+
+  Each time you convey a covered work, the recipient automatically
+receives a license from the original licensors, to run, modify and
+propagate that work, subject to this License.  You are not responsible
+for enforcing compliance by third parties with this License.
+
+  An "entity transaction" is a transaction transferring control of an
+organization, or substantially all assets of one, or subdividing an
+organization, or merging organizations.  If propagation of a covered
+work results from an entity transaction, each party to that
+transaction who receives a copy of the work also receives whatever
+licenses to the work the party's predecessor in interest had or could
+give under the previous paragraph, plus a right to possession of the
+Corresponding Source of the work from the predecessor in interest, if
+the predecessor has it or can get it with reasonable efforts.
+
+  You may not impose any further restrictions on the exercise of the
+rights granted or affirmed under this License.  For example, you may
+not impose a license fee, royalty, or other charge for exercise of
+rights granted under this License, and you may not initiate litigation
+(including a cross-claim or counterclaim in a lawsuit) alleging that
+any patent claim is infringed by making, using, selling, offering for
+sale, or importing the Program or any portion of it.
+
+  11. Patents.
+
+  A "contributor" is a copyright holder who authorizes use under this
+License of the Program or a work on which the Program is based.  The
+work thus licensed is called the contributor's "contributor version".
+
+  A contributor's "essential patent claims" are all patent claims
+owned or controlled by the contributor, whether already acquired or
+hereafter acquired, that would be infringed by some manner, permitted
+by this License, of making, using, or selling its contributor version,
+but do not include claims that would be infringed only as a
+consequence of further modification of the contributor version.  For
+purposes of this definition, "control" includes the right to grant
+patent sublicenses in a manner consistent with the requirements of
+this License.
+
+  Each contributor grants you a non-exclusive, worldwide, royalty-free
+patent license under the contributor's essential patent claims, to
+make, use, sell, offer for sale, import and otherwise run, modify and
+propagate the contents of its contributor version.
+
+  In the following three paragraphs, a "patent license" is any express
+agreement or commitment, however denominated, not to enforce a patent
+(such as an express permission to practice a patent or covenant not to
+sue for patent infringement).  To "grant" such a patent license to a
+party means to make such an agreement or commitment not to enforce a
+patent against the party.
+
+  If you convey a covered work, knowingly relying on a patent license,
+and the Corresponding Source of the work is not available for anyone
+to copy, free of charge and under the terms of this License, through a
+publicly available network server or other readily accessible means,
+then you must either (1) cause the Corresponding Source to be so
+available, or (2) arrange to deprive yourself of the benefit of the
+patent license for this particular work, or (3) arrange, in a manner
+consistent with the requirements of this License, to extend the patent
+license to downstream recipients.  "Knowingly relying" means you have
+actual knowledge that, but for the patent license, your conveying the
+covered work in a country, or your recipient's use of the covered work
+in a country, would infringe one or more identifiable patents in that
+country that you have reason to believe are valid.
+
+  If, pursuant to or in connection with a single transaction or
+arrangement, you convey, or propagate by procuring conveyance of, a
+covered work, and grant a patent license to some of the parties
+receiving the covered work authorizing them to use, propagate, modify
+or convey a specific copy of the covered work, then the patent license
+you grant is automatically extended to all recipients of the covered
+work and works based on it.
+
+  A patent license is "discriminatory" if it does not include within
+the scope of its coverage, prohibits the exercise of, or is
+conditioned on the non-exercise of one or more of the rights that are
+specifically granted under this License.  You may not convey a covered
+work if you are a party to an arrangement with a third party that is
+in the business of distributing software, under which you make payment
+to the third party based on the extent of your activity of conveying
+the work, and under which the third party grants, to any of the
+parties who would receive the covered work from you, a discriminatory
+patent license (a) in connection with copies of the covered work
+conveyed by you (or copies made from those copies), or (b) primarily
+for and in connection with specific products or compilations that
+contain the covered work, unless you entered into that arrangement,
+or that patent license was granted, prior to 28 March 2007.
+
+  Nothing in this License shall be construed as excluding or limiting
+any implied license or other defenses to infringement that may
+otherwise be available to you under applicable patent law.
+
+  12. No Surrender of Others' Freedom.
+
+  If conditions are imposed on you (whether by court order, agreement or
+otherwise) that contradict the conditions of this License, they do not
+excuse you from the conditions of this License.  If you cannot convey a
+covered work so as to satisfy simultaneously your obligations under this
+License and any other pertinent obligations, then as a consequence you may
+not convey it at all.  For example, if you agree to terms that obligate you
+to collect a royalty for further conveying from those to whom you convey
+the Program, the only way you could satisfy both those terms and this
+License would be to refrain entirely from conveying the Program.
+
+  13. Remote Network Interaction; Use with the GNU General Public License.
+
+  Notwithstanding any other provision of this License, if you modify the
+Program, your modified version must prominently offer all users
+interacting with it remotely through a computer network (if your version
+supports such interaction) an opportunity to receive the Corresponding
+Source of your version by providing access to the Corresponding Source
+from a network server at no charge, through some standard or customary
+means of facilitating copying of software.  This Corresponding Source
+shall include the Corresponding Source for any work covered by version 3
+of the GNU General Public License that is incorporated pursuant to the
+following paragraph.
+
+  Notwithstanding any other provision of this License, you have
+permission to link or combine any covered work with a work licensed
+under version 3 of the GNU General Public License into a single
+combined work, and to convey the resulting work.  The terms of this
+License will continue to apply to the part which is the covered work,
+but the work with which it is combined will remain governed by version
+3 of the GNU General Public License.
+
+  14. Revised Versions of this License.
+
+  The Free Software Foundation may publish revised and/or new versions of
+the GNU Affero General Public License from time to time.  Such new versions
+will be similar in spirit to the present version, but may differ in detail to
+address new problems or concerns.
+
+  Each version is given a distinguishing version number.  If the
+Program specifies that a certain numbered version of the GNU Affero General
+Public License "or any later version" applies to it, you have the
+option of following the terms and conditions either of that numbered
+version or of any later version published by the Free Software
+Foundation.  If the Program does not specify a version number of the
+GNU Affero General Public License, you may choose any version ever published
+by the Free Software Foundation.
+
+  If the Program specifies that a proxy can decide which future
+versions of the GNU Affero General Public License can be used, that proxy's
+public statement of acceptance of a version permanently authorizes you
+to choose that version for the Program.
+
+  Later license versions may give you additional or different
+permissions.  However, no additional obligations are imposed on any
+author or copyright holder as a result of your choosing to follow a
+later version.
+
+  15. Disclaimer of Warranty.
+
+  THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
+APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
+HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY
+OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM
+IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
+ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
+
+  16. Limitation of Liability.
+
+  IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
+WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS
+THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY
+GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE
+USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF
+DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD
+PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
+EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGES.
+
+  17. Interpretation of Sections 15 and 16.
+
+  If the disclaimer of warranty and limitation of liability provided
+above cannot be given local legal effect according to their terms,
+reviewing courts shall apply local law that most closely approximates
+an absolute waiver of all civil liability in connection with the
+Program, unless a warranty or assumption of liability accompanies a
+copy of the Program in return for a fee.
+
+                     END OF TERMS AND CONDITIONS
+
+            How to Apply These Terms to Your New Programs
+
+  If you develop a new program, and you want it to be of the greatest
+possible use to the public, the best way to achieve this is to make it
+free software which everyone can redistribute and change under these terms.
+
+  To do so, attach the following notices to the program.  It is safest
+to attach them to the start of each source file to most effectively
+state the exclusion of warranty; and each file should have at least
+the "copyright" line and a pointer to where the full notice is found.
+
+    <one line to give the program's name and a brief idea of what it does.>
+    Copyright (C) <year>  <name of author>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+Also add information on how to contact you by electronic and paper mail.
+
+  If your software can interact with users remotely through a computer
+network, you should also make sure that it provides a way for users to
+get its source.  For example, if your program is a web application, its
+interface could display a "Source" link that leads users to an archive
+of the code.  There are many ways you could offer source, and different
+solutions will be better for different programs; see section 13 for the
+specific requirements.
+
+  You should also get your employer (if you work as a programmer) or school,
+if any, to sign a "copyright disclaimer" for the program, if necessary.
+For more information on this, and how to apply and follow the GNU AGPL, see
+<https://www.gnu.org/licenses/>.
+
+
+
+================================================
+FILE: .config/starship.toml
+================================================
+palette = "mine"
+
+"$schema" = "https://starship.rs/config-schema.json"
+format = """
+$os\
+[](bg:color_dir_bg fg:color_arch_bg)\
+$directory\
+[](fg:color_dir_bg)\
+$username\
+$hostname\
+$localip\
+$shlvl\
+$singularity\
+$kubernetes\
+$nats\
+$vcsh\
+$fossil_branch\
+$fossil_metrics\
+$git_branch$git_commit$git_state$git_metrics$git_status$hg_branch$hg_state\
+$pijul_channel\
+$docker_context\
+$package\
+$bun\
+$c\
+$cmake\
+$cobol\
+$cpp\
+$daml\
+$dart\
+$deno\
+$dotnet\
+$elixir\
+$elm\
+$erlang\
+$fennel\
+$fortran\
+$gleam\
+$golang\
+$gradle\
+$haskell\
+$haxe\
+$helm\
+$java\
+$julia\
+$kotlin\
+$lua\
+$maven\
+$mojo\
+$nim\
+$nodejs\
+$ocaml\
+$odin\
+$opa\
+$perl\
+$php\
+$pulumi\
+$purescript\
+$python\
+$quarto\
+$raku\
+$rlang\
+$red\
+$ruby\
+$rust\
+$scala\
+$solidity\
+$swift\
+$terraform\
+$typst\
+$vlang\
+$vagrant\
+$xmake\
+$zig\
+$buf\
+$guix_shell\
+$nix_shell\
+$conda\
+$pixi\
+$meson\
+$spack\
+$memory_usage\
+$aws\
+$gcloud\
+$openstack\
+$azure\
+$direnv\
+$env_var\
+$mise\
+$crystal\
+$custom\
+$sudo\
+$cmd_duration\
+$line_break\
+$jobs\
+$battery\
+$time\
+$status\
+$container\
+$netns\
+$shell\
+$character"""
+right_format = ""
+continuation_prompt = "[∙](bright-black) "
+scan_timeout = 500
+command_timeout = 500
+add_newline = true
+follow_symlinks = true
+
+[palettes]
+
+[profiles]
+
+[aws]
+format = 'on [$symbol($profile )(\($region\) )(\[$duration\] )]($style)'
+symbol = "☁️  "
+style = "bold yellow"
+disabled = false
+expiration_symbol = "X"
+force_display = false
+
+[aws.region_aliases]
+
+[aws.profile_aliases]
+
+[azure]
+format = "on [$symbol($subscription)]($style) "
+symbol = "󰠅 "
+style = "blue bold"
+disabled = true
+
+[azure.subscription_aliases]
+
+[battery]
+full_symbol = "󰁹 "
+charging_symbol = "󰂄 "
+discharging_symbol = "󰂃 "
+unknown_symbol = "󰂑 "
+empty_symbol = "󰂎 "
+disabled = false
+format = "[$symbol$percentage]($style) "
+
+[[battery.display]]
+threshold = 10
+style = "red bold"
+
+[buf]
+format = "with [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "🐃 "
+style = "bold blue"
+disabled = false
+detect_extensions = []
+detect_files = [
+    "buf.yaml",
+    "buf.gen.yaml",
+    "buf.work.yaml",
+]
+detect_folders = []
+
+[bun]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "🥟 "
+style = "bold red"
+disabled = false
+detect_extensions = []
+detect_files = [
+    "bun.lock",
+    "bun.lockb",
+    "bunfig.toml",
+]
+detect_folders = []
+
+[c]
+format = "via [$symbol($version(-$name) )]($style)"
+version_format = "v${raw}"
+style = "149 bold"
+symbol = "C "
+disabled = false
+detect_extensions = [
+    "c",
+    "h",
+]
+detect_files = []
+detect_folders = []
+commands = [
+    [
+    "cc",
+    "--version",
+],
+    [
+    "gcc",
+    "--version",
+],
+    [
+    "clang",
+    "--version",
+],
+]
+
+[character]
+format = "$symbol "
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+vimcmd_symbol = "[❮](bold green)"
+vimcmd_visual_symbol = "[❮](bold yellow)"
+vimcmd_replace_symbol = "[❮](bold purple)"
+vimcmd_replace_one_symbol = "[❮](bold purple)"
+disabled = false
+
+[claude_context]
+format = "[$gauge $percentage]($style) "
+symbol = ""
+gauge_width = 5
+gauge_full_symbol = "█"
+gauge_partial_symbol = "▒"
+gauge_empty_symbol = "░"
+disabled = false
+
+[[claude_context.display]]
+threshold = 0.0
+style = "bold green"
+hidden = true
+
+[[claude_context.display]]
+threshold = 30.0
+style = "bold green"
+hidden = false
+
+[[claude_context.display]]
+threshold = 60.0
+style = "bold yellow"
+hidden = false
+
+[[claude_context.display]]
+threshold = 80.0
+style = "bold red"
+hidden = false
+
+[claude_cost]
+format = '[$symbol(\$$cost)]($style) '
+symbol = "💰 "
+disabled = false
+
+[[claude_cost.display]]
+threshold = 0.0
+style = "bold green"
+hidden = true
+
+[[claude_cost.display]]
+threshold = 1.0
+style = "bold yellow"
+hidden = false
+
+[[claude_cost.display]]
+threshold = 5.0
+style = "bold red"
+hidden = false
+
+[claude_model]
+format = "[$symbol$model]($style) "
+symbol = "🤖 "
+style = "bold blue"
+disabled = false
+
+[claude_model.model_aliases]
+
+[cmake]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "△ "
+style = "bold blue"
+disabled = false
+detect_extensions = []
+detect_files = [
+    "CMakeLists.txt",
+    "CMakeCache.txt",
+]
+detect_folders = []
+
+[cmd_duration]
+min_time = 2000
+format = "took [$duration]($style) "
+style = "yellow bold"
+show_milliseconds = false
+disabled = false
+show_notifications = false
+min_time_to_notify = 45000
+
+[cobol]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "⚙️ "
+style = "bold blue"
+disabled = false
+detect_extensions = [
+    "cbl",
+    "cob",
+    "CBL",
+    "COB",
+]
+detect_files = []
+detect_folders = []
+
+[conda]
+truncation_length = 1
+format = "via [$symbol$environment]($style) "
+symbol = "🅒 "
+style = "green bold"
+ignore_base = true
+detect_env_vars = ["!PIXI_ENVIRONMENT_NAME"]
+disabled = false
+
+[container]
+format = '[$symbol \[$name\]]($style) '
+symbol = "⬢"
+style = "red bold dimmed"
+disabled = false
+
+[cpp]
+format = "via [$symbol($version(-$name) )]($style)"
+version_format = "v${raw}"
+style = "149 bold"
+symbol = "C++ "
+disabled = true
+detect_extensions = [
+    "cpp",
+    "cc",
+    "cxx",
+    "c++",
+    "hpp",
+    "hh",
+    "hxx",
+    "h++",
+    "tcc",
+]
+detect_files = []
+detect_folders = []
+commands = [
+    [
+    "c++",
+    "--version",
+],
+    [
+    "g++",
+    "--version",
+],
+    [
+    "clang++",
+    "--version",
+],
+]
+
+[crystal]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "🔮 "
+style = "bold red"
+disabled = false
+detect_extensions = ["cr"]
+detect_files = ["shard.yml"]
+detect_folders = []
+
+[daml]
+symbol = "Λ "
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+style = "bold cyan"
+disabled = false
+detect_extensions = []
+detect_files = ["daml.yaml"]
+detect_folders = []
+
+[dart]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "🎯 "
+style = "bold blue"
+disabled = false
+detect_extensions = ["dart"]
+detect_files = [
+    "pubspec.yaml",
+    "pubspec.yml",
+    "pubspec.lock",
+]
+detect_folders = [".dart_tool"]
+
+[deno]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "🦕 "
+style = "green bold"
+disabled = false
+detect_extensions = []
+detect_files = [
+    "deno.json",
+    "deno.jsonc",
+    "deno.lock",
+    "mod.ts",
+    "deps.ts",
+    "mod.js",
+    "deps.js",
+]
+detect_folders = []
+
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+substitutions = []
+fish_style_pwd_dir_length = 0
+use_logical_path = true
+format = "[$path]($style)[$read_only]($read_only_style)"
+repo_root_format = "[$before_root_path]($before_repo_root_style)[$repo_root]($repo_root_style)[$path]($style)[$read_only]($read_only_style) "
+style = "bg:color_dir_bg fg:#ffffff"
+disabled = false
+read_only = "🔒"
+read_only_style = "red"
+truncation_symbol = ""
+home_symbol = "  ~"
+use_os_path_sep = true
+
+[direnv]
+format = "[$symbol$loaded/$allowed]($style) "
+symbol = "direnv "
+style = "bold bright-yellow"
+disabled = true
+detect_extensions = []
+detect_env_vars = ["DIRENV_FILE"]
+detect_files = [".envrc"]
+detect_folders = []
+allowed_msg = "allowed"
+not_allowed_msg = "not allowed"
+denied_msg = "denied"
+loaded_msg = "loaded"
+unloaded_msg = "not loaded"
+
+[docker_context]
+symbol = "🐳 "
+style = "blue bold"
+format = "via [$symbol$context]($style) "
+only_with_files = true
+disabled = false
+detect_extensions = []
+detect_files = [
+    "compose.yml",
+    "compose.yaml",
+    "docker-compose.yml",
+    "docker-compose.yaml",
+    "Dockerfile",
+]
+detect_folders = []
+
+[dotnet]
+format = "via [$symbol($version )(🎯 $tfm )]($style)"
+version_format = "v${raw}"
+symbol = ".NET "
+style = "blue bold"
+heuristic = true
+disabled = false
+detect_extensions = [
+    "csproj",
+    "fsproj",
+    "xproj",
+]
+detect_files = [
+    "global.json",
+    "project.json",
+    "Directory.Build.props",
+    "Directory.Build.targets",
+    "Packages.props",
+]
+detect_folders = []
+
+[elixir]
+format = 'via [$symbol($version \(OTP $otp_version\) )]($style)'
+version_format = "v${raw}"
+symbol = "💧 "
+style = "bold purple"
+disabled = false
+detect_extensions = []
+detect_files = ["mix.exs"]
+detect_folders = []
+
+[elm]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "🌳 "
+style = "cyan bold"
+disabled = false
+detect_extensions = ["elm"]
+detect_files = [
+    "elm.json",
+    "elm-package.json",
+    ".elm-version",
+]
+detect_folders = ["elm-stuff"]
+
+[env_var]
+
+[erlang]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = " "
+style = "bold red"
+disabled = false
+detect_extensions = []
+detect_files = [
+    "rebar.config",
+    "erlang.mk",
+]
+detect_folders = []
+
+[fennel]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "🧅 "
+style = "bold green"
+disabled = true
+detect_extensions = ["fnl"]
+detect_files = []
+detect_folders = []
+
+[fill]
+style = "bold black"
+symbol = "."
+disabled = false
+
+[fortran]
+format = "via [$symbol($version(-$name) )]($style)"
+version_format = "${raw}"
+symbol = "🅵  "
+style = "bold purple"
+disabled = false
+detect_extensions = [
+    "f",
+    "F",
+    "for",
+    "FOR",
+    "ftn",
+    "FTN",
+    "f77",
+    "F77",
+    "f90",
+    "F90",
+    "f95",
+    "F95",
+    "f03",
+    "F03",
+    "f08",
+    "F08",
+    "f18",
+    "F18",
+]
+detect_files = ["fpm.toml"]
+detect_folders = []
+commands = [
+    [
+    "gfortran",
+    "--version",
+],
+    [
+    "flang",
+    "--version",
+],
+    [
+    "flang-new",
+    "--version",
+],
+]
+
+[fossil_branch]
+format = "on [$symbol$branch]($style) "
+symbol = " "
+style = "bold purple"
+truncation_length = 9223372036854775807
+truncation_symbol = "…"
+disabled = true
+
+[fossil_metrics]
+format = "([+$added]($added_style) )([-$deleted]($deleted_style) )"
+added_style = "bold green"
+deleted_style = "bold red"
+only_nonzero_diffs = true
+disabled = true
+
+[gcloud]
+format = 'on [$symbol$account(@$domain)(\($region\))]($style) '
+symbol = "☁️  "
+style = "bold blue"
+disabled = false
+detect_env_vars = []
+
+[gcloud.region_aliases]
+
+[gcloud.project_aliases]
+
+[git_branch]
+format = " on [$symbol$branch(:$remote_branch)]($style) "
+symbol = " "
+style = "bold color_dir_bg"
+truncation_length = 9223372036854775807
+truncation_symbol = "…"
+only_attached = false
+always_show_remote = false
+ignore_branches = []
+ignore_bare_repo = false
+disabled = false
+
+[git_commit]
+commit_hash_length = 7
+format = '[\($hash$tag\)]($style) '
+style = "green bold"
+only_detached = true
+disabled = false
+tag_symbol = " 🏷  "
+tag_disabled = true
+tag_max_candidates = 0
+
+[git_metrics]
+added_style = "bold green"
+deleted_style = "bold red"
+only_nonzero_diffs = true
+format = "([+$added]($added_style) )([-$deleted]($deleted_style) )"
+disabled = true
+ignore_submodules = false
+
+[git_state]
+rebase = "REBASING"
+merge = "MERGING"
+revert = "REVERTING"
+cherry_pick = "CHERRY-PICKING"
+bisect = "BISECTING"
+am = "AM"
+am_or_rebase = "AM/REBASE"
+style = "bold yellow"
+format = '\([$state( $progress_current/$progress_total)]($style)\) '
+disabled = false
+
+[git_status]
+format = '([\[$all_status$ahead_behind\]]($style) )'
+style = "red bold"
+stashed = '\$'
+ahead = "⇡"
+behind = "⇣"
+up_to_date = ""
+diverged = "⇕"
+conflicted = "="
+deleted = "✘"
+renamed = "»"
+modified = "!"
+staged = "+"
+untracked = "?"
+typechanged = ""
+worktree_added = ""
+worktree_deleted = ""
+worktree_modified = ""
+worktree_typechanged = ""
+index_added = ""
+index_deleted = ""
+index_modified = ""
+index_typechanged = ""
+ignore_submodules = false
+disabled = false
+use_git_executable = false
+
+[gleam]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "⭐ "
+style = "bold #FFAFF3"
+disabled = false
+detect_extensions = ["gleam"]
+detect_files = ["gleam.toml"]
+detect_folders = []
+
+[golang]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "🐹 "
+style = "bold cyan"
+disabled = false
+not_capable_style = "bold red"
+detect_extensions = ["go"]
+detect_files = [
+    "go.mod",
+    "go.sum",
+    "go.work",
+    "glide.yaml",
+    "Gopkg.yml",
+    "Gopkg.lock",
+    ".go-version",
+]
+detect_folders = ["Godeps"]
+
+[gradle]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "🅶 "
+style = "bold bright-cyan"
+disabled = false
+recursive = false
+detect_extensions = [
+    "gradle",
+    "gradle.kts",
+]
+detect_files = []
+detect_folders = ["gradle"]
+
+[guix_shell]
+format = "via [$symbol]($style) "
+symbol = "🐃 "
+style = "yellow bold"
+disabled = false
+
+[haskell]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "λ "
+style = "bold purple"
+disabled = false
+detect_extensions = [
+    "hs",
+    "cabal",
+    "hs-boot",
+]
+detect_files = [
+    "stack.yaml",
+    "cabal.project",
+]
+detect_folders = []
+
+[haxe]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "⌘ "
+style = "bold fg:202"
+disabled = false
+detect_extensions = [
+    "hx",
+    "hxml",
+]
+detect_files = [
+    "haxelib.json",
+    "hxformat.json",
+    ".haxerc",
+]
+detect_folders = [
+    ".haxelib",
+    "haxe_libraries",
+]
+
+[helm]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "⎈ "
+style = "bold white"
+disabled = false
+detect_extensions = []
+detect_files = [
+    "helmfile.yaml",
+    "Chart.yaml",
+]
+detect_folders = []
+
+[hg_branch]
+symbol = " "
+style = "bold purple"
+format = "on [$symbol$branch(:$topic)]($style) "
+truncation_length = 9223372036854775807
+truncation_symbol = "…"
+disabled = true
+
+[hg_state]
+merge = "MERGING"
+rebase = "REBASING"
+update = "UPDATING"
+bisect = "BISECTING"
+shelve = "SHELVING"
+graft = "GRAFTING"
+transplant = "TRANSPLANTING"
+histedit = "HISTEDITING"
+style = "bold yellow"
+format = '\([$state]($style)\) '
+disabled = true
+
+[hostname]
+ssh_only = true
+ssh_symbol = "🌐 "
+trim_at = "."
+detect_env_vars = []
+format = "[$ssh_symbol$hostname]($style) in "
+style = "green dimmed bold"
+disabled = false
+
+[hostname.aliases]
+
+[java]
+disabled = false
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+style = "red dimmed"
+symbol = "☕ "
+detect_extensions = [
+    "java",
+    "class",
+    "jar",
+    "gradle",
+    "clj",
+    "cljc",
+]
+detect_files = [
+    "pom.xml",
+    "build.gradle.kts",
+    "build.sbt",
+    ".java-version",
+    "deps.edn",
+    "project.clj",
+    "build.boot",
+    ".sdkmanrc",
+]
+detect_folders = []
+
+[jobs]
+threshold = 1
+symbol_threshold = 1
+number_threshold = 2
+format = "[$symbol$number]($style) "
+symbol = "✦"
+style = "bold blue"
+disabled = false
+
+[julia]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "ஃ "
+style = "bold purple"
+disabled = false
+detect_extensions = ["jl"]
+detect_files = [
+    "Project.toml",
+    "Manifest.toml",
+]
+detect_folders = []
+
+[kotlin]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "🅺 "
+style = "bold blue"
+kotlin_binary = "kotlin"
+disabled = false
+detect_extensions = [
+    "kt",
+    "kts",
+]
+detect_files = []
+detect_folders = []
+
+[kubernetes]
+symbol = "☸ "
+format = '[$symbol$context( \($namespace\))]($style) in '
+style = "cyan bold"
+disabled = true
+detect_extensions = []
+detect_files = []
+detect_folders = []
+detect_env_vars = []
+contexts = []
+
+[kubernetes.context_aliases]
+
+[kubernetes.user_aliases]
+
+[line_break]
+disabled = false
+
+[localip]
+ssh_only = true
+format = "[$localipv4]($style) "
+style = "yellow bold"
+disabled = true
+
+[lua]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "🌙 "
+style = "bold blue"
+lua_binary = "lua"
+disabled = false
+detect_extensions = ["lua"]
+detect_files = [".lua-version"]
+detect_folders = ["lua"]
+
+[maven]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "🅼 "
+style = "bold bright-cyan"
+disabled = false
+recursive = false
+detect_extensions = []
+detect_files = ["pom.xml"]
+detect_folders = []
+
+[memory_usage]
+threshold = 75
+format = "via $symbol[$ram( | $swap)]($style) "
+style = "white bold dimmed"
+symbol = "🐏 "
+disabled = true
+
+[meson]
+truncation_length = 4294967295
+truncation_symbol = "…"
+format = "via [$symbol$project]($style) "
+symbol = "⬢ "
+style = "blue bold"
+disabled = false
+
+[mise]
+format = "on [$symbol$health]($style) "
+symbol = "mise "
+style = "bold purple"
+disabled = true
+detect_extensions = []
+detect_files = [
+    "mise.toml",
+    "mise.local.toml",
+    ".mise.toml",
+    ".mise.local.toml",
+]
+detect_folders = [".mise"]
+healthy_symbol = "healthy"
+unhealthy_symbol = "unhealthy"
+
+[mojo]
+format = "with [$symbol($version )]($style)"
+symbol = "🔥 "
+style = "bold 208"
+disabled = false
+detect_extensions = [
+    "mojo",
+    "🔥",
+]
+detect_files = []
+detect_folders = []
+
+[nats]
+format = "[$symbol($name )]($style)"
+symbol = "✉️ "
+style = "bold purple"
+disabled = true
+
+[netns]
+format = '[$symbol \[$name\]]($style) '
+symbol = "🛜"
+style = "blue bold dimmed"
+disabled = false
+
+[nim]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "👑 "
+style = "yellow bold"
+disabled = false
+detect_extensions = [
+    "nim",
+    "nims",
+    "nimble",
+]
+detect_files = ["nim.cfg"]
+detect_folders = []
+
+[nix_shell]
+format = 'via [$symbol$state( \($name\))]($style) '
+symbol = "❄️  "
+style = "bold blue"
+impure_msg = "impure"
+pure_msg = "pure"
+unknown_msg = ""
+disabled = false
+heuristic = false
+
+[nodejs]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = " "
+style = "bold green"
+disabled = false
+not_capable_style = "bold red"
+detect_extensions = [
+    "js",
+    "mjs",
+    "cjs",
+    "ts",
+    "mts",
+    "cts",
+]
+detect_files = [
+    "package.json",
+    ".node-version",
+    ".nvmrc",
+    "!bunfig.toml",
+    "!bun.lock",
+    "!bun.lockb",
+    "!deno.json",
+    "!deno.jsonc",
+    "!deno.lock",
+]
+detect_folders = ["node_modules"]
+
+[ocaml]
+format = 'via [$symbol($version )(\($switch_indicator$switch_name\) )]($style)'
+version_format = "v${raw}"
+global_switch_indicator = ""
+local_switch_indicator = "*"
+symbol = "🐫 "
+style = "bold yellow"
+disabled = false
+detect_extensions = [
+    "opam",
+    "ml",
+    "mli",
+    "re",
+    "rei",
+]
+detect_files = [
+    "dune",
+    "dune-project",
+    "jbuild",
+    "jbuild-ignore",
+    ".merlin",
+]
+detect_folders = [
+    "_opam",
+    "esy.lock",
+]
+
+[odin]
+format = "via [$symbol($version )]($style)"
+show_commit = false
+symbol = "Ø "
+style = "bold bright-blue"
+disabled = false
+detect_extensions = ["odin"]
+detect_files = []
+detect_folders = []
+
+[opa]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "🪖 "
+style = "bold blue"
+disabled = false
+detect_extensions = ["rego"]
+detect_files = []
+detect_folders = []
+
+[openstack]
+format = 'on [$symbol$cloud(\($project\))]($style) '
+symbol = "☁️  "
+style = "bold yellow"
+disabled = false
+
+[os]
+disabled = false
+style = "bg:color_arch_bg fg:#101010"
+format = "[ $symbol]($style)"
+
+[os.symbols]
+AIX = "➿ "
+Alpaquita = "🔔 "
+AlmaLinux = "💠 "
+Alpine = "🏔️ "
+ALTLinux = "Ⓐ "
+Amazon = "🙂 "
+Android = "🤖 "
+AOSC = "🐱 "
+Arch = " "
+Artix = "🎗️ "
+Bluefin = "🐟 "
+CachyOS = "🎗️ "
+CentOS = "💠 "
+Debian = "🌀 "
+Elementary = "🍏 "
+DragonFly = "🐉 "
+Emscripten = "🔗 "
+EndeavourOS = " "
+Fedora = "🎩 "
+FreeBSD = "😈 "
+Garuda = "🦅 "
+Gentoo = "🗜️ "
+HardenedBSD = "🛡️ "
+Illumos = "🐦 "
+Ios = "📱 "
+InstantOS = "⏲️ "
+Kali = "🐉 "
+Linux = "🐧 "
+Mabox = "📦 "
+Macos = "🍎 "
+Manjaro = "🥭 "
+Mariner = "🌊 "
+MidnightBSD = "🌘 "
+Mint = "🌿 "
+NetBSD = "🚩 "
+NixOS = "❄️ "
+Nobara = "🎩 "
+OpenBSD = "🐡 "
+OpenCloudOS = "☁️ "
+openEuler = "🦉 "
+openSUSE = "🦎 "
+OracleLinux = "🦴 "
+PikaOS = "🐤 "
+Pop = "🍭 "
+Raspbian = "🍓 "
+Redhat = "🎩 "
+RedHatEnterprise = "🎩 "
+RockyLinux = "💠 "
+Redox = "🧪 "
+Solus = "⛵ "
+SUSE = "🦎 "
+Ubuntu = "🎯 "
+Ultramarine = "🔷 "
+Unknown = "❓ "
+Uos = "🐲 "
+Void = " "
+Windows = "🪟 "
+Zorin = "🔹 "
+
+[package]
+format = "is [$symbol$version]($style) "
+symbol = "📦 "
+style = "208 bold"
+display_private = false
+disabled = false
+version_format = "v${raw}"
+
+[perl]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "🐪 "
+style = "149 bold"
+disabled = false
+detect_extensions = [
+    "pl",
+    "pm",
+    "pod",
+]
+detect_files = [
+    "Makefile.PL",
+    "Build.PL",
+    "cpanfile",
+    "cpanfile.snapshot",
+    "META.json",
+    "META.yml",
+    ".perl-version",
+]
+detect_folders = []
+
+[php]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "🐘 "
+style = "147 bold"
+disabled = false
+detect_extensions = ["php"]
+detect_files = [
+    "composer.json",
+    ".php-version",
+]
+detect_folders = []
+
+[pijul_channel]
+symbol = " "
+style = "bold purple"
+format = "on [$symbol$channel]($style) "
+truncation_length = 9223372036854775807
+truncation_symbol = "…"
+disabled = true
+
+[pixi]
+pixi_binary = ["pixi"]
+show_default_environment = true
+format = 'via [$symbol($version )(\($environment\) )]($style)'
+version_format = "v${raw}"
+symbol = "🧚 "
+style = "yellow bold"
+disabled = false
+detect_extensions = []
+detect_files = [
+    "pixi.toml",
+    "pixi.lock",
+]
+detect_folders = []
+
+[pulumi]
+format = "via [$symbol($username@)$stack]($style) "
+version_format = "v${raw}"
+symbol = " "
+style = "bold 5"
+disabled = false
+search_upwards = true
+
+[purescript]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "<=> "
+style = "bold white"
+disabled = false
+detect_extensions = ["purs"]
+detect_files = [
+    "spago.dhall",
+    "spago.yaml",
+    "spago.lock",
+]
+detect_folders = []
+
+[python]
+pyenv_version_name = false
+pyenv_prefix = "pyenv "
+python_binary = [
+    ["python"],
+    ["python3"],
+    ["python2"],
+]
+format = 'via [${symbol}${pyenv_prefix}(${version} )(\($virtualenv\) )]($style)'
+version_format = "v${raw}"
+style = "yellow bold"
+symbol = " "
+disabled = false
+detect_extensions = [
+    "py",
+    "ipynb",
+]
+detect_files = [
+    "requirements.txt",
+    ".python-version",
+    "pyproject.toml",
+    "Pipfile",
+    "tox.ini",
+    "setup.py",
+    "__init__.py",
+]
+detect_folders = []
+detect_env_vars = ["VIRTUAL_ENV"]
+generic_venv_names = []
+
+[quarto]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "⨁ "
+style = "bold #75AADB"
+disabled = false
+detect_extensions = ["qmd"]
+detect_files = ["_quarto.yml"]
+detect_folders = []
+
+[raku]
+format = "via [$symbol($version-$vm_version )]($style)"
+version_format = "${raw}"
+symbol = "🦋 "
+style = "149 bold"
+disabled = false
+detect_extensions = [
+    "p6",
+    "pm6",
+    "pod6",
+    "raku",
+    "rakumod",
+]
+detect_files = ["META6.json"]
+detect_folders = []
+
+[red]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "🔺 "
+style = "red bold"
+disabled = false
+detect_extensions = [
+    "red",
+    "reds",
+]
+detect_files = []
+detect_folders = []
+
+[rlang]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+style = "blue bold"
+symbol = "📐 "
+disabled = false
+detect_extensions = [
+    "R",
+    "Rd",
+    "Rmd",
+    "Rproj",
+    "Rsx",
+]
+detect_files = ["DESCRIPTION"]
+detect_folders = [".Rproj.user"]
+
+[ruby]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "💎 "
+style = "bold red"
+disabled = false
+detect_extensions = ["rb"]
+detect_files = [
+    "Gemfile",
+    ".ruby-version",
+]
+detect_folders = []
+detect_variables = [
+    "RUBY_VERSION",
+    "RBENV_VERSION",
+]
+
+[rust]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "🦀 "
+style = "bold red"
+disabled = false
+detect_extensions = ["rs"]
+detect_files = ["Cargo.toml"]
+detect_folders = []
+
+[scala]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+disabled = false
+style = "red bold"
+symbol = "🆂 "
+detect_extensions = [
+    "sbt",
+    "scala",
+]
+detect_files = [
+    ".scalaenv",
+    ".sbtenv",
+    "build.sbt",
+]
+detect_folders = [".metals"]
+
+[shell]
+format = "[$indicator]($style) "
+bash_indicator = "bsh"
+fish_indicator = "fsh"
+zsh_indicator = "zsh"
+powershell_indicator = "psh"
+ion_indicator = "ion"
+elvish_indicator = "esh"
+tcsh_indicator = "tsh"
+nu_indicator = "nu"
+xonsh_indicator = "xsh"
+cmd_indicator = "cmd"
+unknown_indicator = ""
+style = "white bold"
+disabled = true
+
+[shlvl]
+threshold = 2
+format = "[$symbol$shlvl]($style) "
+symbol = "↕️  "
+repeat = false
+repeat_offset = 0
+style = "bold yellow"
+disabled = true
+
+[singularity]
+symbol = ""
+format = '[$symbol\[$env\]]($style) '
+style = "blue bold dimmed"
+disabled = false
+
+[solidity]
+format = "via [$symbol($version)]($style)"
+version_format = "v${major}.${minor}.${patch}"
+disabled = false
+style = "bold blue"
+symbol = "S "
+compiler = ["solc"]
+detect_extensions = ["sol"]
+detect_files = []
+detect_folders = []
+
+[spack]
+truncation_length = 1
+format = "via [$symbol$environment]($style) "
+symbol = "🅢 "
+style = "blue bold"
+disabled = false
+
+[status]
+format = "[$symbol$status]($style) "
+symbol = "❌"
+success_symbol = ""
+not_executable_symbol = "🚫"
+not_found_symbol = "🔍"
+sigint_symbol = "🧱"
+signal_symbol = "⚡"
+style = "bold red"
+map_symbol = false
+recognize_signal_code = true
+pipestatus = false
+pipestatus_separator = "|"
+pipestatus_format = '\[$pipestatus\] => [$symbol$common_meaning$signal_name$maybe_int]($style) '
+disabled = true
+
+[sudo]
+format = "[as $symbol]($style)"
+symbol = "🧙 "
+style = "bold blue"
+allow_windows = false
+disabled = true
+
+[swift]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "🐦 "
+style = "bold 202"
+disabled = false
+detect_extensions = ["swift"]
+detect_files = ["Package.swift"]
+detect_folders = []
+
+[terraform]
+format = "via [$symbol$workspace]($style) "
+version_format = "v${raw}"
+symbol = "💠 "
+style = "bold 105"
+disabled = false
+detect_extensions = [
+    "tf",
+    "tfplan",
+    "tfstate",
+]
+detect_files = []
+detect_folders = [".terraform"]
+commands = [
+    [
+    "terraform",
+    "version",
+],
+    [
+    "tofu",
+    "version",
+],
+]
+
+[time]
+format = "at [$time]($style) "
+style = "bold yellow"
+use_12hr = false
+disabled = true
+utc_time_offset = "local"
+time_range = "-"
+
+[typst]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "t "
+style = "bold #0093A7"
+disabled = false
+detect_extensions = ["typ"]
+detect_files = ["template.typ"]
+detect_folders = []
+
+[username]
+detect_env_vars = []
+format = "[$user]($style) in "
+style_root = "red bold"
+style_user = "yellow bold"
+show_always = false
+disabled = false
+
+[username.aliases]
+
+[vagrant]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "⍱ "
+style = "cyan bold"
+disabled = false
+detect_extensions = []
+detect_files = ["Vagrantfile"]
+detect_folders = []
+
+[vcs]
+order = [
+    "git",
+    "hg",
+    "pijul",
+    "fossil",
+]
+disabled = false
+fossil_modules = "$fossil_branch$fossil_metrics"
+git_modules = "$git_branch$git_commit$git_state$git_metrics$git_status"
+hg_modules = "$hg_branch$hg_state"
+pijul_modules = "$pijul_channel"
+
+[vcsh]
+symbol = ""
+style = "bold yellow"
+format = "vcsh [$symbol$repo]($style) "
+disabled = false
+
+[vlang]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "V "
+style = "blue bold"
+disabled = false
+detect_extensions = ["v"]
+detect_files = [
+    "v.mod",
+    "vpkg.json",
+    ".vpkg-lock.json",
+]
+detect_folders = []
+
+[xmake]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "△ "
+style = "bold green"
+disabled = false
+detect_extensions = []
+detect_files = ["xmake.lua"]
+detect_folders = []
+
+[zig]
+format = "via [$symbol($version )]($style)"
+version_format = "v${raw}"
+symbol = "↯ "
+style = "bold yellow"
+disabled = false
+detect_extensions = ["zig"]
+detect_files = []
+detect_folders = []
+
+[custom]
+
+[palettes.mine]
+# Light Gray
+color_arch_bg = "#e4e4e4"
+# Blue
+color_dir_bg = "#1e88e5"
+
+
+
+================================================
+FILE: .config/fastfetch/config.jsonc
+================================================
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json",
+  "logo": {
+    "type": "kitty",
+    "source": "~/Ricing/\"Custom Icons\"/Arch_Linux_2D_Icon.png",
+    "color": {
+      "1": "",
+      "2": "",
+      "3": "",
+      "4": "",
+      "5": "",
+      "6": "",
+      "7": "",
+      "8": "",
+      "9": ""
+    },
+    "width": null,
+    "height": null,
+    "padding": {
+      "top": 0,
+      "left": 0,
+      "bottom": 0,
+      "right": 4
+    },
+    "printRemaining": true,
+    "preserveAspectRatio": false,
+    "recache": false,
+    "position": "left",
+    "chafa": {
+      "fgOnly": false,
+      "symbols": "block+border+space-wide-inverted"
+    }
+  },
+  "display": {
+    "stat": false,
+    "pipe": false,
+    "showErrors": false,
+    "disableLinewrap": false,
+    "hideCursor": false,
+    "separator": "  ",
+    "color": {
+      "keys": "",
+      "title": "",
+      "output": "",
+      "separator": ""
+    },
+    "brightColor": true,
+    "duration": {
+      "abbreviation": false,
+      "spaceBeforeUnit": "default"
+    },
+    "size": {
+      "maxPrefix": "YB",
+      "binaryPrefix": "iec",
+      "ndigits": 2,
+      "spaceBeforeUnit": "default"
+    },
+    "temp": {
+      "unit": "D",
+      "ndigits": 1,
+      "color": {
+        "green": "32",
+        "yellow": "93",
+        "red": "91"
+      },
+      "spaceBeforeUnit": "default"
+    },
+    "percent": {
+      "type": [
+        "num",
+        "num-color"
+      ],
+      "ndigits": 0,
+      "color": {
+        "green": "32",
+        "yellow": "93",
+        "red": "91"
+      },
+      "spaceBeforeUnit": "default",
+      "width": 0
+    },
+    "bar": {
+      "char": {
+        "elapsed": "■",
+        "total": "-"
+      },
+      "border": {
+        "left": "[ ",
+        "right": " ]",
+        "leftElapsed": "",
+        "rightElapsed": ""
+      },
+      "color": {
+        "elapsed": "auto",
+        "total": "97",
+        "border": "97"
+      },
+      "width": 10
+    },
+    "fraction": {
+      "ndigits": 2,
+      "trailingZeros": "default"
+    },
+    "noBuffer": false,
+    "key": {
+      "width": 0,
+      "type": "string",
+      "paddingLeft": 0
+    },
+    "freq": {
+      "ndigits": 2,
+      "spaceBeforeUnit": "default"
+    },
+    "constants": []
+  },
+  "general": {
+    "thread": true,
+    "processingTimeout": 5000,
+    "detectVersion": true,
+    "playerName": "",
+    "dsForceDrm": false
+  },
+  "modules": [
+    {
+      "type": "custom",
+      "format": "{#keys}╭────────────╮"
+    },
+    {
+      "type": "title",
+      "key": "│  user     │",
+      "format": "{1}"
+    },
+    {
+      "type": "title",
+      "key": "│ 󰇅 hostn    │",
+      "format": "{2}"
+    },
+    {
+      "type": "custom",
+      "format": "{#keys}├────────────┤"
+    },
+    {
+      "type": "kernel",
+      "key": "│  kernel   │"
+    },
+    {
+      "type": "os",
+      "key": "│  distro   │"
+    },
+    {
+      "type": "wm",
+      "key": "│  winman   │",
+      "detectPlugin": true
+    },
+    {
+      "type": "terminal",
+      "key": "│  term     │"
+    },
+    {
+      "type": "shell",
+      "key": "│  shell    │"
+    },
+    {
+      "type": "custom",
+      "format": "{#keys}├────────────┤"
+    },
+    {
+      "type": "cpu",
+      "key": "│  cpu      │",
+      "format": "{1}",
+      "temp": false,
+      "showPeCoreCount": true,
+      "tempSensor": ""
+    },
+    {
+      "type": "gpu",
+      "key": "│ 󰾲 gpu      │",
+      "driverSpecific": false,
+      "detectionMethod": "pci",
+      "temp": false,
+      "hideType": "Integrated",
+      "format": "{2}",
+      "percent": {
+        "green": 50,
+        "yellow": 80,
+        "type": 0
+      }
+    },
+    {
+      "type": "memory",
+      "key": "│  mem      │",
+      "percent": {
+        "green": 50,
+        "yellow": 80,
+        "type": 0
+      }
+    },
+    {
+      "type": "disk",
+      "key": "│  disk     │",
+      "showRegular": true,
+      "showExternal": true,
+      "showHidden": false,
+      "showSubvolumes": false,
+      "showReadOnly": true,
+      "showUnknown": false,
+      "folders": "",
+      "hideFolders": "/efi:/boot:/boot/*",
+      "hideFS": "",
+      "useAvailable": false,
+      "percent": {
+        "green": 50,
+        "yellow": 80,
+        "type": 0
+      }
+    },
+    {
+      "type": "custom",
+      "format": "{#keys}├────────────┤"
+    },
+    {
+      "type": "weather",
+      "key": "│ 󰖙 weather  │",
+      "location": "Madrid",
+      "outputFormat": "%t+-+%C+(%l)",
+      "timeout": 1000
+    },
+    {
+      "type": "colors",
+      "key": " ",
+      "key": "│  colors   │",
+      "symbol": "circle",
+      "paddingLeft": 0,
+      "block": {
+        "width": 1,
+        "range": [
+          0,
+          15
+        ]
+      },
+      "brightness": "default"
+    },
+    {
+      "type": "custom",
+      "format": "{#keys}╰────────────╯"
+    }
+  ]
+}
+
+
+
+================================================
+FILE: .config/fish/config.fish
+================================================
+if status is-interactive
+    # Commands to run in interactive sessions can go here
+    starship init fish | source
+    set -gx EDITOR nvim
+    set -gx VISUAL nvim
+    set -x BROWSER qutebrowser
+    fastfetch
+end
+
+# Start Hyprland on TTY1
+if status is-login
+    if test -z "$WAYLAND_DISPLAY"; and test (tty) = /dev/tty1
+        start-hyprland
+    end
+end
+
+
+
+================================================
+FILE: .config/hypr/hyprland.lua
+================================================
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+-- AUTOGENERATED HYPRLAND CONFIG.                        --
+-- EDIT THIS CONFIG ACCORDING TO THE WIKI INSTRUCTIONS.  --
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+
+-- This is an example Hyprland Lua config file.
+-- Refer to the wiki for more information.
+-- https://wiki.hypr.land/Configuring/Start/
+
+-- Please note not all available settings / options are set here.
+-- For a full list, see the wiki
+
+-- You can (and should!!) split this configuration into multiple files
+-- Create your files separately and then require them like this:
+-- require("myColors")
+
+
+------------------
+---- MONITORS ----
+------------------
+
+-- See https://wiki.hypr.land/Configuring/Basics/Monitors/
+hl.monitor({
+    output   = "",
+    mode     = "preferred",
+    position = "auto",
+    scale    = "1",
+})
+
+
+---------------------
+---- MY PROGRAMS ----
+---------------------
+
+-- Set programs that you use
+local terminal = "kitty"
+local fileManager = "kitty --hold spf"
+local menu = "hyprlauncher"
+local browser = "qutebrowser --qt-flag disable-gpu"
+
+-------------------
+---- AUTOSTART ----
+-------------------
+
+-- See https://wiki.hypr.land/Configuring/Basics/Autostart/
+
+-- Autostart necessary processes (like notifications daemons, status bars, etc.)
+-- Or execute your favorite apps at launch like this:
+--
+hl.on("hyprland.start", function () 
+   hl.exec_cmd("hyprpaper")
+   hl.exec_cmd("qs")
+   hl.exec_cmd("wl-clip-persist --clipboard regular")
+   hl.exec_cmd("snappy-switcher --daemon")
+   hl.exec_cmd("systemctl --user start hyprpolkitagent")
+   hl.exec_cmd("1password --silent")
+--   hl.exec_cmd("at ~/.local/share/kpc_pass.txt | keepassxc --minimized --pw-stdin ~/KeePassXC/Passwords.kdbx")
+--   hl.exec_cmd(terminal)
+--   hl.exec_cmd("nm-applet")
+--   hl.exec_cmd("waybar & hyprpaper & firefox")
+end)
+
+
+-------------------------------
+---- ENVIRONMENT VARIABLES ----
+-------------------------------
+
+-- See https://wiki.hypr.land/Configuring/Advanced-and-Cool/Environment-variables/
+
+hl.env("XCURSOR_SIZE", "24")
+hl.env("HYPRCURSOR_SIZE", "24")
+hl.env("ELECTRON_OZONE_PLATFORM_HINT", "auto")
+hl.env("WLR_DRM_DEVICES", "/dev/dri/card1")
+
+
+-----------------------
+----- PERMISSIONS -----
+-----------------------
+
+-- See https://wiki.hypr.land/Configuring/Advanced-and-Cool/Permissions/
+-- Please note permission changes here require a Hyprland restart and are not applied on-the-fly
+-- for security reasons
+
+-- hl.config({
+--   ecosystem = {
+--     enforce_permissions = true,
+--   },
+-- })
+
+-- hl.permission("/usr/(bin|local/bin)/grim", "screencopy", "allow")
+-- hl.permission("/usr/(lib|libexec|lib64)/xdg-desktop-portal-hyprland", "screencopy", "allow")
+-- hl.permission("/usr/(bin|local/bin)/hyprpm", "plugin", "allow")
+
+
+-----------------------
+---- LOOK AND FEEL ----
+-----------------------
+
+-- Refer to https://wiki.hypr.land/Configuring/Basics/Variables/
+hl.config({
+    general = {
+        gaps_in  = 2,
+        gaps_out = 4,
+
+        border_size = 0,
+
+        col = {
+            active_border   = { colors = {"rgba(33ccffee)", "rgba(00ff99ee)"}, angle = 45 },
+            inactive_border = "rgba(595959aa)",
+        },
+
+        -- Set to true to enable resizing windows by clicking and dragging on borders and gaps
+        resize_on_border = false,
+
+        -- Please see https://wiki.hypr.land/Configuring/Advanced-and-Cool/Tearing/ before you turn this on
+        allow_tearing = false,
+
+        layout = "dwindle",
+    },
+
+    decoration = {
+        rounding       = 5,
+        rounding_power = 2,
+
+        -- Change transparency of focused and unfocused windows
+        active_opacity   = 1.0,
+        inactive_opacity = 0.5,
+
+        shadow = {
+            enabled      = false,
+            range        = 4,
+            render_power = 3,
+            color        = 0xee1a1a1a,
+        },
+
+        blur = {
+            enabled   = true,
+            size      = 3,
+            passes    = 2,
+            vibrancy  = 0.1696,
+        },
+    },
+
+    animations = {
+        enabled = true,
+    },
+})
+
+-- Default curves and animations, see https://wiki.hypr.land/Configuring/Advanced-and-Cool/Animations/
+hl.curve("easeOutQuint",   { type = "bezier", points = { {0.23, 1},    {0.32, 1}    } })
+hl.curve("easeInOutCubic", { type = "bezier", points = { {0.65, 0.05}, {0.36, 1}    } })
+hl.curve("linear",         { type = "bezier", points = { {0, 0},       {1, 1}       } })
+hl.curve("almostLinear",   { type = "bezier", points = { {0.5, 0.5},   {0.75, 1}    } })
+hl.curve("quick",          { type = "bezier", points = { {0.15, 0},    {0.1, 1}     } })
+
+-- Default springs
+hl.curve("easy",           { type = "spring", mass = 1, stiffness = 238.1191, dampening = 24.21279333 })
+
+hl.animation({ leaf = "global",        enabled = true,  speed = 10,   bezier = "default" })
+hl.animation({ leaf = "border",        enabled = true,  speed = 5.39, bezier = "easeOutQuint" })
+hl.animation({ leaf = "windows",       enabled = true,  speed = 4.79, spring = "easy" })
+hl.animation({ leaf = "windowsIn",     enabled = true,  speed = 4.1,  spring = "easy",         style = "popin 87%" })
+hl.animation({ leaf = "windowsOut",    enabled = true,  speed = 1.49, bezier = "linear",       style = "popin 87%" })
+hl.animation({ leaf = "fadeIn",        enabled = true,  speed = 1.73, bezier = "almostLinear" })
+hl.animation({ leaf = "fadeOut",       enabled = true,  speed = 1.46, bezier = "almostLinear" })
+hl.animation({ leaf = "fade",          enabled = true,  speed = 3.03, bezier = "quick" })
+hl.animation({ leaf = "layers",        enabled = true,  speed = 3.81, bezier = "easeOutQuint" })
+hl.animation({ leaf = "layersIn",      enabled = true,  speed = 4,    bezier = "easeOutQuint", style = "fade" })
+hl.animation({ leaf = "layersOut",     enabled = true,  speed = 1.5,  bezier = "linear",       style = "fade" })
+hl.animation({ leaf = "fadeLayersIn",  enabled = true,  speed = 1.79, bezier = "almostLinear" })
+hl.animation({ leaf = "fadeLayersOut", enabled = true,  speed = 1.39, bezier = "almostLinear" })
+hl.animation({ leaf = "workspaces",    enabled = true,  speed = 1.94, bezier = "almostLinear", style = "fade" })
+hl.animation({ leaf = "workspacesIn",  enabled = true,  speed = 1.21, bezier = "almostLinear", style = "fade" })
+hl.animation({ leaf = "workspacesOut", enabled = true,  speed = 1.94, bezier = "almostLinear", style = "fade" })
+hl.animation({ leaf = "zoomFactor",    enabled = true,  speed = 7,    bezier = "quick" })
+
+-- Ref https://wiki.hypr.land/Configuring/Basics/Workspace-Rules/
+-- "Smart gaps" / "No gaps when only"
+-- uncomment all if you wish to use that.
+-- hl.workspace_rule({ workspace = "w[tv1]", gaps_out = 0, gaps_in = 0 })
+-- hl.workspace_rule({ workspace = "f[1]",   gaps_out = 0, gaps_in = 0 })
+-- hl.window_rule({
+--     name  = "no-gaps-wtv1",
+--     match = { float = false, workspace = "w[tv1]" },
+--     border_size = 0,
+--     rounding    = 0,
+-- })
+-- hl.window_rule({
+--     name  = "no-gaps-f1",
+--     match = { float = false, workspace = "f[1]" },
+--     border_size = 0,
+--     rounding    = 0,
+-- })
+
+-- See https://wiki.hypr.land/Configuring/Layouts/Dwindle-Layout/ for more
+hl.config({
+    dwindle = {
+        preserve_split = true, -- You probably want this
+    },
+})
+
+-- See https://wiki.hypr.land/Configuring/Layouts/Master-Layout/ for more
+hl.config({
+    master = {
+        new_status = "master",
+    },
+})
+
+-- See https://wiki.hypr.land/Configuring/Layouts/Scrolling-Layout/ for more
+hl.config({
+    scrolling = {
+        fullscreen_on_one_column = true,
+    },
+})
+
+----------------
+----  MISC  ----
+----------------
+
+hl.config({
+    misc = {
+        force_default_wallpaper = 0,    -- Set to 0 or 1 to disable the anime mascot wallpapers
+        disable_hyprland_logo   = true, -- If true disables the random hyprland logo / anime girl background. :(
+    },
+})
+
+
+---------------
+---- INPUT ----
+---------------
+
+hl.config({
+    input = {
+        kb_layout  = "us",
+        kb_variant = "",
+        kb_model   = "",
+        kb_options = "",
+        kb_rules   = "",
+
+        follow_mouse = 1,
+
+        sensitivity = 0, -- -1.0 - 1.0, 0 means no modification.
+
+        touchpad = {
+            natural_scroll = false,
+        },
+    },
+})
+
+hl.gesture({
+    fingers = 3,
+    direction = "horizontal",
+    action = "workspace"
+})
+
+-- Example per-device config
+-- See https://wiki.hypr.land/Configuring/Advanced-and-Cool/Devices/ for more
+hl.device({
+    name        = "epic-mouse-v1",
+    sensitivity = -0.5,
+})
+
+
+---------------------
+---- KEYBINDINGS ----
+---------------------
+
+local mainMod = "SUPER" -- Sets "Windows" key as main modifier
+
+-- Example binds, see https://wiki.hypr.land/Configuring/Basics/Binds/ for more
+hl.bind(mainMod .. " + C", hl.dsp.exec_cmd(terminal))
+local closeWindowBind = hl.bind(mainMod .. " + Q", hl.dsp.window.close())
+-- closeWindowBind:set_enabled(false)
+hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
+hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
+hl.bind(mainMod .. " + W", hl.dsp.window.float({ action = "toggle" }))
+hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen({action = "toggle", mode = "maximized"}))
+hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd(menu))
+hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
+hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))    -- dwindle only
+hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser))
+
+-- Move focus with mainMod + arrow keys
+hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }))
+hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
+hl.bind(mainMod .. " + up",    hl.dsp.focus({ direction = "up" }))
+hl.bind(mainMod .. " + down",  hl.dsp.focus({ direction = "down" }))
+
+-- Switch workspaces with mainMod + [0-9]
+-- Move active window to a workspace with mainMod + SHIFT + [0-9]
+for i = 1, 10 do
+    local key = i % 10 -- 10 maps to key 0
+    hl.bind(mainMod .. " + " .. key,             hl.dsp.focus({ workspace = i}))
+    hl.bind(mainMod .. " + SHIFT + " .. key,     hl.dsp.window.move({ workspace = i }))
+end
+
+-- Example special workspace (scratchpad)
+-- hl.bind(mainMod .. " + S",         hl.dsp.workspace.toggle_special("magic"))
+-- hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:magic" }))
+
+-- Scroll through existing workspaces with mainMod + scroll
+hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
+hl.bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
+
+-- Move/resize windows with mainMod + LMB/RMB and dragging
+hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })
+hl.bind(mainMod .. " + SHIFT + mouse:272", hl.dsp.window.resize(), { mouse = true })
+
+-- Laptop multimedia keys for volume and LCD brightness
+hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
+hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      { locked = true, repeating = true })
+hl.bind("XF86AudioMute",        hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),     { locked = true, repeating = true })
+hl.bind("XF86AudioMicMute",     hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),   { locked = true, repeating = true })
+hl.bind("XF86MonBrightnessUp",  hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%+"),                  { locked = true, repeating = true })
+hl.bind("XF86MonBrightnessDown",hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%-"),                  { locked = true, repeating = true })
+
+-- Requires playerctl
+hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = true })
+hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
+hl.bind("XF86AudioPlay",  hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
+hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = true })
+
+-- Screenshot utilities
+hl.bind("Print", hl.dsp.exec_cmd('grim - | swappy -f -'))
+hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd('grim -g "$(slurp)" - | swappy -f -'))
+
+-- Screen Recording Utilities
+hl.bind(mainMod .. " + R", hl.dsp.send_shortcut({ mods = "CTRL_SHIFT_ALT", key = "R", window = "class:^(com\\.obsproject\\.Studio)$" }))
+
+-- 1Password Integration
+hl.bind(mainMod .. " + SHIFT + SPACE", hl.dsp.exec_cmd("1password --quick-access"))
+
+-- Shutdown hook
+hl.bind("CTRL + ALT + SHIFT + DELETE", hl.dsp.exec_cmd("shutdown now"))
+
+-- Clipboard Utilities
+hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("noctalia msg panel-open clipboard"))
+
+-- Window Switcher
+hl.bind("ALT + Tab", hl.dsp.exec_cmd("snappy-switcher next --mod alt"))
+hl.bind("SUPER + TAB", hl.dsp.exec_cmd("snappy-switcher next --workspace --mod super"))
+
+
+--------------------------------
+---- WINDOWS AND WORKSPACES ----
+--------------------------------
+
+-- See https://wiki.hypr.land/Configuring/Basics/Window-Rules/
+-- and https://wiki.hypr.land/Configuring/Basics/Workspace-Rules/
+
+-- Example window rules that are useful
+
+local suppressMaximizeRule = hl.window_rule({
+    -- Ignore maximize requests from all apps. You'll probably like this.
+    name  = "suppress-maximize-events",
+    match = { class = ".*" },
+
+    suppress_event = "maximize",
+})
+-- suppressMaximizeRule:set_enabled(false)
+
+hl.window_rule({
+    -- Fix some dragging issues with XWayland
+    name  = "fix-xwayland-drags",
+    match = {
+        class      = "^$",
+        title      = "^$",
+        xwayland   = true,
+        float      = true,
+        fullscreen = false,
+        pin        = false,
+    },
+
+    no_focus = true,
+})
+
+-- Layer rules also return a handle.
+-- local overlayLayerRule = hl.layer_rule({
+--     name  = "no-anim-overlay",
+--     match = { namespace = "^my-overlay$" },
+--     no_anim = true,
+-- })
+-- overlayLayerRule:set_enabled(false)
+
+-- Hyprland-run windowrule
+hl.window_rule({
+    name  = "move-hyprland-run",
+    match = { class = "hyprland-run" },
+
+    move  = "20 monitor_h-120",
+    float = true,
+})
+
+
+-- Fix XWayland Scaling
+hl.config({
+    xwayland = {
+        force_zero_scaling = true
+    }
+})
+
+
+
+================================================
+FILE: .config/hypr/hyprpaper.conf
+================================================
+wallpaper {
+    monitor = 
+    path = ~/Ricing/Wallpapers/Cedeira.jpg
+    fit_mode = cover
+}
+splash = false
+
+
+
+================================================
+FILE: .config/kitty/kitty.conf
+================================================
+shell /usr/bin/fish
+font_family JetBrainsMono Nerd Font
+font_size 11
+
+
+
+================================================
+FILE: .config/nvim/init.lua
+================================================
+require("config")
+
+
+
+================================================
+FILE: .config/nvim/lazy-lock.json
+================================================
+{
+  "lazy.nvim": { "branch": "main", "commit": "306a05526ada86a7b30af95c5cc81ffba93fef97" },
+  "nvim-colorizer.lua": { "branch": "master", "commit": "72a05f62c52241bc7441c820eb53946f92b2e6a4" },
+  "nvim-lspconfig": { "branch": "master", "commit": "af9adce488c75ca0a81017945c2b7fa7b461bc23" },
+  "nvim-treesitter": { "branch": "main", "commit": "8b98b4470eb326f1c7b50dae79f8c963568e5720" },
+  "plenary.nvim": { "branch": "master", "commit": "74b06c6c75e4eeb3108ec01852001636d85a932b" },
+  "telescope-fzf-native.nvim": { "branch": "main", "commit": "b25b749b9db64d375d782094e2b9dce53ad53a40" },
+  "telescope.nvim": { "branch": "master", "commit": "5255aa27c422de944791318024167ad5d40aad20" }
+}
+
+
+
+================================================
+FILE: .config/nvim/lua/config/custom.lua
+================================================
+-- 24-bit TUI RGB color
+vim.opt.termguicolors = true
+-- Relative line numbers
+vim.opt.number = true
+vim.opt.relativenumber = true
+
+
+
+================================================
+FILE: .config/nvim/lua/config/init.lua
+================================================
+require("config.lazy")
+require("config.remap")
+require("config.lsp")
+require("config.custom")
+
+
+
+================================================
+FILE: .config/nvim/lua/config/lazy.lua
+================================================
+-- Bootstrap lazy.nvim
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
+  local lazyrepo = "https://github.com/folke/lazy.nvim.git"
+  local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
+  if vim.v.shell_error ~= 0 then
+    vim.api.nvim_echo({
+      { "Failed to clone lazy.nvim:\n", "ErrorMsg" },
+      { out, "WarningMsg" },
+      { "\nPress any key to exit..." },
+    }, true, {})
+    vim.fn.getchar()
+    os.exit(1)
+  end
+end
+vim.opt.rtp:prepend(lazypath)
+
+-- Make sure to setup `mapleader` and `maplocalleader` before
+-- loading lazy.nvim so that mappings are correct.
+-- This is also a good place to setup other settings (vim.opt)
+vim.g.mapleader = " "
+vim.g.maplocalleader = "\\"
+
+-- Setup lazy.nvim
+require("lazy").setup({
+  spec = {
+    -- import your plugins
+    { import = "plugins" },
+  },
+  -- Configure any other settings here. See the documentation for more details.
+  -- colorscheme that will be used when installing plugins.
+  install = { colorscheme = { "habamax" } },
+  -- automatically check for plugin updates
+  checker = { enabled = true },
+})
+
+
+
+================================================
+FILE: .config/nvim/lua/config/lsp.lua
+================================================
+-- Get the absolute path to your lua/config/lsp directory
+local lsp_dir_path = vim.fn.stdpath("config") .. "/lua/lsp"
+
+-- Check if the directory exists before attempting to read it
+if vim.fn.isdirectory(lsp_dir_path) == 1 then
+  -- Loop through every file in the directory
+  for _, file in ipairs(vim.fn.readdir(lsp_dir_path)) do
+    -- Match only .lua files
+    if file:match("%.lua$") then
+      -- Extract the server name from the filename (e.g., "qml.lua" becomes "qml")
+      local server_name = file:gsub("%.lua$", "")
+      
+      -- Safely require the config file module
+      local ok, config = pcall(require, "lsp." .. server_name)
+      
+      if ok and type(config) == "table" then
+        -- Register the configuration and enable the language server natively
+        vim.lsp.config(server_name, config)
+        vim.lsp.enable(server_name)
+      end
+    end
+  end
+end
+
+-- Automatically show autocompletes
+vim.api.nvim_create_autocmd('LspAttach', {
+  callback = function(args)
+    local client = vim.lsp.get_client_by_id(args.data.client_id)
+    if client and client:supports_method('textDocument/completion') then
+      -- Enable auto-trigger completion
+      vim.lsp.completion.enable(true, client.id, args.buf, { autotrigger = true })
+    end
+  end,
+})
+
+-- Recommended options for visual layout
+vim.opt.completeopt = { 'menu', 'menuone', 'noinsert', 'fuzzy', 'popup' }
+
+
+
+================================================
+FILE: .config/nvim/lua/config/remap.lua
+================================================
+vim.g.mapleader = " "
+vim.keymap.set("n", "<leader>pv", vim.cmd.Ex)
+
+
+
+================================================
+FILE: .config/nvim/lua/lsp/lua_ls.lua
+================================================
+return {
+	cmd = { 'lua-language-server' },
+	filetypes = { 'lua' },
+	-- Ensure it triggers when you open your Hyprland config
+	root_markers = { 'hyprland.lua', '.git' },
+	settings = {
+		Lua = {
+			runtime = { version = 'LuaJIT' },
+			workspace = {
+				checkThirdParty = false,
+				library = {
+					-- This injects the Hyprland API stubs
+					'/usr/share/hypr/stubs/',
+					-- Optional: Injects Neovim's own Lua API for configuring the editor
+					vim.env.VIMRUNTIME,
+				},
+			},
+			diagnostics = {
+				-- Stop the LSP from complaining that "hl" is an undefined global
+				globals = { 'hl' }
+			}
+		}
+	}
+}
+
+
+
+================================================
+FILE: .config/nvim/lua/lsp/qmlls.lua
+================================================
+return {
+	cmd = { 'qmlls6' },
+	filetypes = { 'qml', 'qmljs' },
+}
+
+
+
+================================================
+FILE: .config/nvim/lua/plugins/colorizer.lua
+================================================
+return {
+  "catgoose/nvim-colorizer.lua",
+  event = "BufReadPre",
+  opts = {},
+}
+
+
+
+================================================
+FILE: .config/nvim/lua/plugins/lspconfig.lua
+================================================
+return {
+  "neovim/nvim-lspconfig",
+}
+
+
+
+================================================
+FILE: .config/nvim/lua/plugins/telescope.lua
+================================================
+return {
+	'nvim-telescope/telescope.nvim', version = '*',
+	dependencies = {
+		'nvim-lua/plenary.nvim',
+		-- optional but recommended
+		{ 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' },
+	},
+	config = function()
+		local builtin = require('telescope.builtin')
+		vim.keymap.set('n', '<leader>ff', builtin.find_files, { desc = 'Telescope find files' })
+		vim.keymap.set('n', '<leader>fg', builtin.live_grep, { desc = 'Telescope live grep' })
+		vim.keymap.set('n', '<leader>fb', builtin.buffers, { desc = 'Telescope buffers' })
+		vim.keymap.set('n', '<leader>fh', builtin.help_tags, { desc = 'Telescope help tags' })
+	end
+}
+
+
+
+================================================
+FILE: .config/nvim/lua/plugins/treesitter.lua
+================================================
+return {
+	'nvim-treesitter/nvim-treesitter',
+	lazy = false,
+	build = ':TSUpdate',
+	config = function ()
+		require('nvim-treesitter').install {
+			'lua',
+			'json',
+			'qmljs',
+			'java'
+		}
+	end
+}
+
+
+
+================================================
+FILE: .config/quickshell/Bar.qml
+================================================
+import Quickshell
+
+Scope {
+  // no more time object
+
+  Variants {
+    model: Quickshell.screens
+
+    PanelWindow {
+      required property var modelData
+      screen: modelData
+
+      anchors {
+        top: true
+        left: true
+        right: true
+      }
+
+      implicitHeight: 30
+
+      ClockWidget {
+        anchors.centerIn: parent
+
+        // no more time binding
+      }
+    }
+  }
+}
+
+
+
+
+================================================
+FILE: .config/quickshell/ClockWidget.qml
+================================================
+import QtQuick
+
+Text {
+  // we no longer need time as an input
+
+  // directly access the time property from the Time singleton
+  text: Time.time
+}
+
+
+
+
+================================================
+FILE: .config/quickshell/launcher.qml
+================================================
+import Quickshell
+import QtQuick
+
+PanelWindow {
+	aboveWindows: true
+	focusable: true
+	implicitWidth: Math.round(screen.width / 2)
+	TextInput {
+		anchors.centerIn: parent
+		text: "Hello, World!"
+		font.family: "monospace"
+		font.pointSize: 24
+	}
+}
+
+
+
+================================================
+FILE: .config/quickshell/shell.qml
+================================================
+import Quickshell
+import Quickshell.Services.UPower
+import Quickshell.Hyprland
+import Quickshell.Io
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+
+// Top bar
+PanelWindow {
+	id: root
+
+	readonly property string fontFamily: "JetBrainsMono Nerd Font"
+	readonly property int spacingBetweenWidgets: 15
+	readonly property int spacingBetweenWidgetElements: 4
+	readonly property int imageIconSize: 20
+	readonly property int textIconSize: 18
+	readonly property real unfocusedOpacity: 0.50
+	
+	anchors {
+		top: true
+		left: true
+		right: true
+	}
+
+	color: "black"
+	implicitHeight: 30
+
+
+	// === LEFT SIDE ===
+	Row {
+		anchors.verticalCenter: parent.verticalCenter
+		spacing: root.spacingBetweenWidgets
+
+		// Desktop Numbers
+		RowLayout {
+			id: desktopsRoot
+
+			anchors.verticalCenter: parent.verticalCenter
+	
+			Repeater {
+				model: {
+					const highestActiveId = Hyprland.workspaces.values.reduce((max, w) => Math.max(max, w.id), 0);
+					const focusedId = Hyprland.focusedWorkspace?.id || 0;
+					return Math.max(highestActiveId, focusedId);
+				}
+	
+				Text {
+					property var currentWorkspace: Hyprland.workspaces.values.find(w => w.id === index + 1)
+					property bool isActive: Hyprland.focusedWorkspace?.id === (index + 1)
+
+					font.family: root.fontFamily
+					font.underline: isActive
+					font.bold: isActive
+	
+					color: "white"
+					opacity: isActive ? 1 : root.unfocusedOpacity
+					text: index + 1
+	
+					MouseArea {
+						anchors.fill: parent
+						onClicked: Hyprland.dispatch(`hl.dsp.focus({ workspace = ${index + 1}})`)
+					}
+				}
+			}
+		}
+		// App Icons
+		Row {
+			anchors.verticalCenter: parent.verticalCenter
+			spacing: root.spacingBetweenWidgetElements
+			Repeater {
+				model: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.toplevels : []
+				delegate: Image {
+					width: root.imageIconSize
+					height: root.imageIconSize
+					smooth: true
+					opacity: modelData.activated ? 1.0 : root.unfocusedOpacity
+					fillMode: Image.PreserveAspectFit
+					source: {
+						if (!modelData || !modelData.wayland) return "";
+						let appId = modelData.wayland.appId;
+						if (!appId) return "";
+						let desktopEntry = DesktopEntries.heuristicLookup(appId);
+						if (desktopEntry) {
+							let iconPath = Quickshell.iconPath(desktopEntry.icon, true);
+							return iconPath;
+						}
+						return Quickshell.iconPath(appId, true);
+					}
+				}
+			}
+		}
+		// Current Application Title
+		Text {
+			id: activeWindowNameText
+
+			anchors.verticalCenter: parent.verticalCenter
+
+			font.family: root.fontFamily
+
+			color: "white"
+			text: Hyprland.focusedWorkspace.id + Hyprland.activeTopLevel?
+			text: Hyprland.activeToplevel?.title
+			visible: Hyprland.activeToplevel?.workspace.id === Hyprland.focusedWorkspace.id
+		}
+	}
+
+	// === RIGHT SIDE ===
+	Row {
+		anchors.verticalCenter: parent.verticalCenter
+		anchors.right: parent.right
+		spacing: root.spacingBetweenWidgets
+
+		Row {
+			id: brightnessRoot
+	
+			property string brightnessPercentage: "100"
+	
+			anchors.verticalCenter: parent.verticalCenter
+			spacing: root.spacingBetweenWidgetElements
+	
+			Text {
+				id: brightnessIcon
+	
+				color: "white"
+				font.family: root.fontFamily
+				font.pixelSize: root.textIconSize
+	
+				anchors.verticalCenter: parent.verticalCenter
+	
+				text: {
+					let brightnessIcons = ["󰃚", "󰃛", "󰃜", "󰃝", "󰃞", "󰃟", "󰃠"];
+					let index = Math.max(0, Math.min(6, Math.ceil(brightnessRoot.brightnessPercentage / (100 / 7)) - 1))
+					return brightnessIcons[index]
+				}
+				
+				MouseArea {
+					anchors.fill: parent
+	
+					onWheel: (wheel) => {
+						if (wheel.angleDelta.y > 0) {
+							Quickshell.execDetached(["brightnessctl", "set", "+1%"])
+						} else {
+							Quickshell.execDetached(["brightnessctl", "set", "1%-"])
+						}
+					}
+				}
+			}
+	
+			Process {
+				id: getBrightness
+				command: ["brightnessctl", "-m"]
+				running: true
+				stdout: StdioCollector {
+					onStreamFinished: {
+						let output = this.text.trim()
+						if (output) {
+							let rawString = output.split(",")[3].replace("%", "")
+							brightnessRoot.brightnessPercentage = parseInt(rawString) || 100
+						}
+					}
+				}
+			}
+	
+			Process {
+				id: brightnessWatcher
+				command: ["sh", "-c", "inotifywait -m -e modify /sys/class/backlight/*/brightness"]
+				running: true
+				stdout: SplitParser {
+					onRead: data => {
+						getBrightness.running = true
+					}
+				}
+			}
+		}
+
+		Item {
+			id: batteryRoot
+	
+			readonly property UPowerDevice batteryDevice: UPower.displayDevice
+			property int batteryState: batteryDevice ? batteryDevice.state : 0
+			property real batteryPercentage: batteryDevice ? batteryDevice.percentage : 0
+	
+			anchors.verticalCenter: parent.verticalCenter
+
+			height: parent.height
+			width: childrenRect.width
+	
+			visible: batteryDevice && batteryDevice.isPresent && batteryDevice.isLaptopBattery
+	
+			
+			HoverHandler {
+				id: batteryHover
+			}
+	
+			ToolTip {
+				visible: batteryHover.hovered
+				text: "Hello, World!"
+				delay: 400
+				timeout: 4000
+				popupType: Popup.Native
+			}
+	
+	
+			Row {
+				anchors.right: parent.right
+				anchors.verticalCenter: parent.verticalCenter
+				spacing: 4
+							
+				Text {
+					id: profileIcon
+		
+					color: "white"
+					font.family: root.fontFamily
+					font.pixelSize: 18
+		
+					anchors.verticalCenter: parent.verticalCenter
+			
+					text: {
+						return ["󰾆", "󰾅", "󰓅"][PowerProfiles.profile]
+					}
+		
+					MouseArea {
+						anchors.fill: parent
+						onClicked: {
+							let current = PowerProfiles.profile
+		
+							if (current === PowerProfile.PowerSaver) {
+								PowerProfiles.profile = PowerProfile.Balanced
+								Quickshell.execDetached(["fish", "-c", "setpower normal"])
+							} else if (current === PowerProfile.Balanced) {
+								if (PowerProfiles.hasPerformanceProfile) {
+									PowerProfiles.profile = PowerProfile.Performance
+									Quickshell.execDetached(["fish", "-c", "setpower perf"])
+								} else {
+									PowerProfiles.profile = PowerProfile.PowerSaver
+									Quickshell.execDetached(["fish", "-c", "setpower saver"]);
+								}
+							} else {
+								PowerProfiles.profile = PowerProfile.PowerSaver
+							}
+						}
+					}
+				}
+		
+				Text {
+					id: batteryIcon
+	
+					color: "white"
+					font.family: root.fontFamily
+					font.pixelSize: 18
+		
+					anchors.verticalCenter: parent.verticalCenter
+		
+					text: {
+						let percentage = Math.round(batteryRoot.batteryPercentage * 100)
+						let isCharging = batteryRoot.batteryState === UPowerDeviceState.Charging
+						const dischargeIcons = ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
+						const chargeIcons = ["󰢟", "󰢜", "󰂆", "󰂇", "󰂈", "󰢝", "󰂉", "󰢞", "󰂊", "󰂋", "󰂄"]
+						let index = Math.max(0, Math.min(10, Math.floor(percentage / 10)))
+						return isCharging ? chargeIcons[index] : dischargeIcons[index]
+					}
+				}
+		
+				Text {
+					id: batteryPercentageText
+		
+					color: "white"
+					font.family: root.fontFamily
+		
+					anchors.verticalCenter: parent.verticalCenter
+		
+					text: Math.round(batteryRoot.batteryPercentage * 100) + "%"
+				}
+			}
+		}
+
+		Column {
+			id: clockRoot
+	
+			property string date: Qt.formatDateTime(new Date(), "MM/dd/yyyy")
+			property string time: Qt.formatDateTime(new Date(), "h:mm:ss AP")
+	
+			anchors.verticalCenter: parent.verticalCenter
+	
+			Text {
+				id: date
+				anchors.right: parent.right
+				text: clockRoot.date
+				color: "white"
+				font.family: root.fontFamily
+			}
+	
+			Text {
+				id: time
+				anchors.right: parent.right
+				text: clockRoot.time
+				color: "white"
+				font.family: root.fontFamily
+			}
+	
+			Timer {
+				interval: 1000
+				running: true
+				repeat: true
+				onTriggered: {
+					clockRoot.date = Qt.formatDateTime(new Date(), "MM/dd/yyyy")
+					clockRoot.time = Qt.formatDateTime(new Date(), "h:mm:ss AP")
+				}
+			}
+		}
+	}
+}
+
+
+
+================================================
+FILE: .config/quickshell/Time.qml
+================================================
+// with this line our type becomes a Singleton
+pragma Singleton
+
+import Quickshell
+import Quickshell.Io
+import QtQuick
+
+// your singletons should always have Singleton as the type
+Singleton {
+  id: root
+  property string time
+
+  Process {
+    id: dateProc
+    command: ["date"]
+    running: true
+
+    stdout: StdioCollector {
+      onStreamFinished: root.time = this.text
+    }
+  }
+
+  Timer {
+    interval: 1000
+    running: true
+    repeat: true
+    onTriggered: dateProc.running = true
+  }
+}
+
+
+
+================================================
+FILE: .config/qutebrowser/userscripts/tool_1pass
+================================================
+#!/usr/bin/env bash
+set +e
+
+# JS field injection code from https://github.com/qutebrowser/qutebrowser/blob/main/misc/userscripts/password_fill
+javascript_escape() {
+    # print the first argument in an escaped way, such that it can safely
+    # be used within javascripts double quotes
+    # shellcheck disable=SC2001
+    sed "s,[\\\\'\"\/],\\\\&,g" <<< "$1"
+}
+
+js() {
+cat <<EOF
+    function isVisible(elem) {
+        var style = elem.ownerDocument.defaultView.getComputedStyle(elem, null);
+        if (style.getPropertyValue("visibility") !== "visible" ||
+            style.getPropertyValue("display") === "none" ||
+            style.getPropertyValue("opacity") === "0") {
+            return false;
+        }
+        return elem.offsetWidth > 0 && elem.offsetHeight > 0;
+    };
+    function hasPasswordField(form) {
+        var inputs = form.getElementsByTagName("input");
+        for (var j = 0; j < inputs.length; j++) {
+            var input = inputs[j];
+            if (input.type == "password") {
+                return true;
+            }
+        }
+        return false;
+    };
+    function loadData2Form (form) {
+        var inputs = form.getElementsByTagName("input");
+        for (var j = 0; j < inputs.length; j++) {
+            var input = inputs[j];
+            if (isVisible(input) && (input.type == "text" || input.type == "email")) {
+                input.focus();
+                input.value = "$(javascript_escape "${USERNAME}")";
+                input.dispatchEvent(new Event('change'));
+                input.blur();
+            }
+            if (input.type == "password") {
+                input.focus();
+                input.value = "$(javascript_escape "${PASSWORD}")";
+                input.dispatchEvent(new Event('change'));
+                input.blur();
+            }
+        }
+    };
+    var forms = document.getElementsByTagName("form");
+    if("$(javascript_escape "${QUTE_URL}")" == window.location.href) {
+        for (i = 0; i < forms.length; i++) {
+            if (hasPasswordField(forms[i])) {
+                loadData2Form(forms[i]);
+            }
+        }
+    } else {
+        alert("Secrets will not be inserted.\\nUrl of this page and the one where the user script was started differ.");
+    }
+EOF
+}
+
+URL=$(echo "$QUTE_URL" | awk -F/ '{print $3}' | sed 's/www.//g')
+
+# Sign in (opens 1Password GUI)
+# Replace the current eval "$(op signin)" block with:
+if ! eval "$(op signin 2>&1)"; then
+    echo "message-error 'op signin failed – check :messages'" >> "$QUTE_FIFO"
+    exit 1
+fi
+
+echo "message-info 'Looking for password for $URL...'" >> "$QUTE_FIFO"
+
+# Try to find an item that matches the current URL
+UUID=$(op item list --format=json 2>/dev/null | jq --arg url "$URL" -r '
+    [.[] 
+     | select(.urls != null) 
+     | select(any(.urls[]; .href | test(".*\($url).*"; "i")))
+    ][0].id // empty
+')
+
+# Fallback: let the user pick by title
+if [ -z "$UUID" ]; then
+    echo "message-error 'No entry found for $URL'" >> "$QUTE_FIFO"
+    TITLE=$(op item list --format=json 2>/dev/null | jq -r '.[].title' | rofi -dmenu -i -p "Select 1Password item") || TITLE=""
+    if [ -n "$TITLE" ]; then
+        UUID=$(op item list --format=json 2>/dev/null | jq --arg title "$TITLE" -r '
+            [.[] | select(.title == $title)][0].id // empty
+        ')
+    fi
+fi
+
+if [ -n "$UUID" ]; then
+    ITEM=$(op item get "$UUID" --format=json 2>/dev/null)
+    PASSWORD=$(echo "$ITEM" | jq -r '.fields[]? | select(.purpose == "PASSWORD") | .value // empty')
+    USERNAME=$(echo "$ITEM" | jq -r '.fields[]? | select(.purpose == "USERNAME") | .value // empty')
+    TITLE=$(echo "$ITEM" | jq -r '.title // empty')
+
+    if [ -n "$PASSWORD" ]; then
+        printjs() {
+            js | sed 's,//.*$,,' | tr '\n' ' '
+        }
+        echo "jseval -q $(printjs)" >> "$QUTE_FIFO"
+
+        # Copy TOTP to clipboard if present (Wayland)
+        TOTP=$(op item get "$UUID" --otp 2>/dev/null) || TOTP=""
+        if [ -n "$TOTP" ]; then
+            echo -n "$TOTP" | wl-copy
+            echo "message-info 'Pasted one-time password for $TITLE to clipboard'" >> "$QUTE_FIFO"
+        fi
+    else
+        echo "message-error 'No password found for $URL'" >> "$QUTE_FIFO"
+    fi
+else
+    echo "message-error 'Entry not found'" >> "$QUTE_FIFO"
+fi
+
+

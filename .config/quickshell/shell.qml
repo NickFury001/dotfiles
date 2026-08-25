@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Services.UPower
 import Quickshell.Hyprland
+import Quickshell.Networking
 import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
@@ -99,7 +100,6 @@ PanelWindow {
 			font.family: root.fontFamily
 
 			color: "white"
-			text: Hyprland.focusedWorkspace.id + Hyprland.activeTopLevel?
 			text: Hyprland.activeToplevel?.title
 			visible: Hyprland.activeToplevel?.workspace.id === Hyprland.focusedWorkspace.id
 		}
@@ -110,6 +110,103 @@ PanelWindow {
 		anchors.verticalCenter: parent.verticalCenter
 		anchors.right: parent.right
 		spacing: root.spacingBetweenWidgets
+
+		Row {
+			id: networkRoot
+			
+			anchors.verticalCenter: parent.verticalCenter
+			spacing: root.spacingBetweenWidgetElements
+
+			property string networkName: "text"
+
+			Text {
+				id: networkNameText
+
+				color: "white"
+				font.family: root.fontFamily
+				font.pixelSize: root.textIconSize
+
+				visible: false
+
+				text: networkRoot.networkName
+			}
+
+			Text {
+				id: networkIcon
+
+				color: "white"
+				font.family: root.fontFamily
+				font.pixelSize: root.textIconSize
+
+				text: {
+					// Hardware block means something is wrong
+					if (!Networking.wifiHardwareEnabled) {
+						networkNameText.text = ""
+						return "HW Blocked Conn"
+					}
+					// Quickshell.Networking requires NetworkManager
+					if (Networking.backend !== NetworkBackendType.NetworkManager) {
+						networkNameText.text = ""
+						return "MISSING: NM"
+					}
+					// Needs to be able to check connectivity
+					if (!Networking.canCheckConnectivity || !Networking.connectivityCheckEnabled) {
+						networkNameText.text = ""
+						return "ENABLE: CHKS"
+					}
+					// Wifi turned off by Software (rfkill block)
+					if (!Networking.wifiEnabled) {
+						networkNameText.text = "Disconnected"
+						return "󰤮"
+					}
+					let device = null
+					for (let i = 0; i < Networking.devices.values.length; i++) {
+						const d = Networking.devices.values[i]
+						if (d.connected) {
+							device = d
+							break
+						}
+					}
+					if (!device) {
+						networkNameText.text = "Disconnected"
+						return "󰤮"
+					}
+					if (device.type === DeviceType.Wired) {
+						networkNameText.text = device.name || "Ethernet"
+						return ""
+					}
+					if (device.type === DeviceType.Wifi) {
+						let network = null
+						for (let i = 0; i < device.networks.values.length; i++) {
+							const n = device.networks.values[i]
+							if (n.connected) {
+								network = n
+								break
+							}
+						}
+						if (network) {
+							networkNameText.text = network.name || "Wi-Fi"
+							let strengthIcons = ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"]
+							let index = Math.max(0, Math.min(4, Math.ceil(network.signalStrength / (1 / 5)) - 1))
+							return strengthIcons[index]
+						}
+					}
+				}
+
+				MouseArea {
+					anchors.fill: parent
+					acceptedButtons: Qt.RightButton | Qt.LeftButton
+
+					onClicked: (mouse) => {
+						console.log(mouse.button)
+						// Right Click ==> Show/Hide Network name
+						if (mouse.button == Qt.RightButton) {
+							networkNameText.visible = !networkNameText.visible
+						}
+					}
+				}
+			}
+		}
 
 		Row {
 			id: brightnessRoot
