@@ -17,7 +17,7 @@ if [[ "$1" == "--debug" ]]; then
 fi
 
 # Set the total number of steps to calculate the percentage
-TOTAL_STEPS=18
+TOTAL_STEPS=20
 CURRENT_STEP=0
 
 # Progress bar function suitable for TTY
@@ -181,6 +181,14 @@ pacinstall openssh
 # === LESS ===
 draw_progress "Installing less..."
 pacinstall less
+
+# === FZF ===
+draw_progress "Installing fzf..."
+pacinstall fzf
+
+# === SNAPPY-SWITCHER ===
+draw_progress "Installing snappy-switcher..."
+yayinstall snappy-switcher
 
 # When the setup is complete, go into hyprland
 draw_progress "Cleaning up..."
