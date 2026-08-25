@@ -121,10 +121,10 @@ PanelWindow {
 
 			Text {
 				id: networkNameText
+				anchors.verticalCenter: parent.verticalCenter
 
 				color: "white"
 				font.family: root.fontFamily
-				font.pixelSize: root.textIconSize
 
 				visible: false
 
@@ -292,7 +292,28 @@ PanelWindow {
 	
 			ToolTip {
 				visible: batteryHover.hovered
-				text: "Hello, World!"
+
+				contentItem: Text {
+					font.family: root.fontFamily
+					text: {
+						let text = ""
+						text += Math.round(UPower.displayDevice.changeRate*100)/100
+						text += "W, "
+						text += Math.round(UPower.displayDevice.energy*100)/100
+						text += "Wh"
+						text += (UPower.displayDevice.timeToFull !== 0) ? 
+						", " + Math.round(UPower.displayDevice.timeToFull/60) + "mins" :
+						""
+						return text
+					}
+					color: "white"
+				}
+
+				background: Rectangle {
+					border.color: "white"
+					color: "black"
+				}
+
 				delay: 400
 				timeout: 4000
 				popupType: Popup.Native
@@ -304,6 +325,36 @@ PanelWindow {
 				anchors.verticalCenter: parent.verticalCenter
 				spacing: 4
 							
+				Text {
+					id: batteryIcon
+	
+					color: "white"
+					font.family: root.fontFamily
+					font.pixelSize: 18
+		
+					anchors.verticalCenter: parent.verticalCenter
+		
+					text: {
+						let percentage = Math.round(batteryRoot.batteryPercentage * 100)
+						let isCharging = batteryRoot.batteryState === UPowerDeviceState.Charging
+						const dischargeIcons = ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
+						const chargeIcons = ["󰢟", "󰢜", "󰂆", "󰂇", "󰂈", "󰢝", "󰂉", "󰢞", "󰂊", "󰂋", "󰂄"]
+						let index = Math.max(0, Math.min(10, Math.floor(percentage / 10)))
+						return isCharging ? chargeIcons[index] : dischargeIcons[index]
+					}
+				}
+
+				Text {
+					id: batteryPercentageText
+		
+					color: "white"
+					font.family: root.fontFamily
+		
+					anchors.verticalCenter: parent.verticalCenter
+		
+					text: Math.round(batteryRoot.batteryPercentage * 100) + "%"
+				}
+				
 				Text {
 					id: profileIcon
 		
@@ -338,36 +389,6 @@ PanelWindow {
 							}
 						}
 					}
-				}
-		
-				Text {
-					id: batteryIcon
-	
-					color: "white"
-					font.family: root.fontFamily
-					font.pixelSize: 18
-		
-					anchors.verticalCenter: parent.verticalCenter
-		
-					text: {
-						let percentage = Math.round(batteryRoot.batteryPercentage * 100)
-						let isCharging = batteryRoot.batteryState === UPowerDeviceState.Charging
-						const dischargeIcons = ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
-						const chargeIcons = ["󰢟", "󰢜", "󰂆", "󰂇", "󰂈", "󰢝", "󰂉", "󰢞", "󰂊", "󰂋", "󰂄"]
-						let index = Math.max(0, Math.min(10, Math.floor(percentage / 10)))
-						return isCharging ? chargeIcons[index] : dischargeIcons[index]
-					}
-				}
-		
-				Text {
-					id: batteryPercentageText
-		
-					color: "white"
-					font.family: root.fontFamily
-		
-					anchors.verticalCenter: parent.verticalCenter
-		
-					text: Math.round(batteryRoot.batteryPercentage * 100) + "%"
 				}
 			}
 		}

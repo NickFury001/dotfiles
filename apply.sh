@@ -17,7 +17,7 @@ if [[ "$1" == "--debug" ]]; then
 fi
 
 # Set the total number of steps to calculate the percentage
-TOTAL_STEPS=20
+TOTAL_STEPS=21
 CURRENT_STEP=0
 
 # Progress bar function suitable for TTY
@@ -185,6 +185,10 @@ pacinstall less
 # === FZF ===
 draw_progress "Installing fzf..."
 pacinstall fzf
+
+# === BTOP ===
+draw_progress "Installing btop..."
+pacinstall btop
 
 # === SNAPPY-SWITCHER ===
 draw_progress "Installing snappy-switcher..."
