@@ -180,4 +180,4 @@ draw_progress "Cleaning up..."
 cd ~/
 rm -rf dotfiles
 sleep 2
-Hyprland
+start-hyprland
