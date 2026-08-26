@@ -17,7 +17,7 @@ if [[ "$1" == "--debug" ]]; then
 fi
 
 # Set the total number of steps to calculate the percentage
-TOTAL_STEPS=22
+TOTAL_STEPS=13
 CURRENT_STEP=0
 
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}"
@@ -75,17 +75,59 @@ else
     sudo pacman -Syu --noconfirm > /dev/null 2>&1
 fi
 
+PACMAN_PACKAGES=(
+	# SysInfo Fetcher
+	fastfetch imagemagick
+	# Shell
+	fish
+	# Window Manager
+	hyprland
+	# Launcher
+	hyprlauncher
+	# Polkit
+	hyprpolkitagent
+	# XDG Portal
+	xdg-desktop-portal-hyprland
+	# Wallpaper
+	hyprpaper
+	# Font
+	ttf-jetbrains-mono-nerd
+	# Terminal
+	kitty
+	# Editor
+	neovim lua-language-server tree-sitter-cli
+	# Custom UI
+	quickshell networkmanager brightnessctl
+	# Browser
+	qutebrowser
+	# Shell Prompt
+	starship
+	# File Manager
+	superfile
+	# Clipboard
+	wl-clipboard
+	# Other
+	openssh
+	less
+	fzf
+	btop
+	# 1password dep
+	jq
+)
+
+# === INSTALL PACMAN PACKAGES ===
+draw_progress "Installing Official Packages..."
+pacinstall "${PACMAN_PACKAGES[@]}"
+
 # === FASTFETCH ===
-draw_progress "Installing Fastfetch..."
-pacinstall fastfetch imagemagick
+draw_progress "Configuring Fastfetch..."
 mkdir -p "$CONFIG_DIR/fastfetch"
 cp .config/fastfetch/config.jsonc "$CONFIG_DIR/fastfetch/"
-mkdir -p "~/Ricing/Custom\ Icons/"
-cp Ricing/Custom\ Icons/Arch_Linux_2D_Icon.png "~/Ricing/Custom\ Icons/"
+mkdir -p ~/Ricing/Custom\ Icons/
+cp Ricing/Custom\ Icons/Arch_Linux_2D_Icon.png ~/Ricing/Custom\ Icons/
 
 # === FISH ===
-draw_progress "Installing Fish..."
-pacinstall fish
+draw_progress "Configuring Fish..."
 mkdir -p "$CONFIG_DIR/fish"
 cp .config/fish/config.fish "$CONFIG_DIR/fish/"
 # Fix: chsh prompts for a password unless run as sudo
@@ -96,35 +138,26 @@ else
 fi
 
 # === HYPRLAND ===
-draw_progress "Installing Hyprland..."
-pacinstall hyprland hyprlauncher hyprpolkitagent xdg-desktop-portal-hyprland
+draw_progress "Configuring Hyprland..."
 mkdir -p "$CONFIG_DIR/hypr"
 cp .config/hypr/hyprland.lua "$CONFIG_DIR/hypr/"
 
 # === HYPRPAPER ===
-draw_progress "Installing Hyprpaper..."
-pacinstall hyprpaper
+draw_progress "Configuring Hyprpaper..."
 mkdir -p "$CONFIG_DIR/hypr/"
 cp .config/hypr/hyprpaper.conf "$CONFIG_DIR/hypr/"
-mkdir -p "~/Ricing/Wallpapers"
-cp Ricing/Wallpapers/Cedeira.jpg "~/Ricing/Wallpapers/"
-
-# === JETBRAINS MONO NERD FONT ===
-draw_progress "Installing JetBrains Mono Nerd Font..."
-pacinstall ttf-jetbrains-mono-nerd
+mkdir -p ~/Ricing/Wallpapers
+cp Ricing/Wallpapers/Cedeira.jpg ~/Ricing/Wallpapers/
 
 # === KITTY ===
-draw_progress "Installing Kitty..."
-pacinstall kitty
+draw_progress "Configuring Kitty..."
 mkdir -p "$CONFIG_DIR/kitty"
 cp .config/kitty/kitty.conf "$CONFIG_DIR/kitty/"
 
 # === NEOVIM ===
-draw_progress "Installing Neovim..."
-pacinstall neovim
+draw_progress "Configuring Neovim..."
 mkdir -p "$CONFIG_DIR/nvim"
 cp -r .config/nvim/. "$CONFIG_DIR/nvim/"
-pacinstall lua-language-server
 if [[ $DEBUG -eq 1 ]]; then
     nvim --headless "+TSInstall qmljs" +qa
 else
@@ -132,25 +165,18 @@ else
 fi
 
 # === QUICKSHELL ===
-draw_progress "Installing Quickshell..."
-pacinstall quickshell networkmanager brightnessctl
+draw_progress "Configuring Quickshell..."
 mkdir -p "$CONFIG_DIR/quickshell"
 cp -r .config/quickshell/. "$CONFIG_DIR/quickshell/"
 
 # === QUTEBROWSER ===
-draw_progress "Installing Qutebrowser..."
-pacinstall qutebrowser
+draw_progress "Configuring Qutebrowser..."
 mkdir -p "$CONFIG_DIR/qutebrowser/userscripts"
 cp -r .config/qutebrowser/userscripts/. "$CONFIG_DIR/qutebrowser/userscripts/"
 
 # === STARSHIP ===
-draw_progress "Installing Starship..."
-pacinstall starship
+draw_progress "Configuring Starship..."
 cp .config/starship.toml "$CONFIG_DIR/"
-
-# === SUPERFILE ===
-draw_progress "Installing Superfile..."
-pacinstall superfile
 
 # === YAY ===
 draw_progress "Installing yay..."
@@ -167,38 +193,19 @@ fi
 cd ..
 rm -rf yay
 
-# === 1PASSWORD ===
-draw_progress "Installing 1Password..."
-pacinstall jq wl-clipboard
-yayinstall 1password-cli 1password
+YAY_PACKAGES=(
+	# Password Manager
+	1password-cli 1password
+	# Image Viewer
+	qview
+	# Window Switcher
+	snappy-switcher
+	# Phone Connect
+	valent
+)
 
-# === QVIEW ===
-draw_progress "Installing QView..."
-yayinstall qview
+yayinstall "${YAY_PACKAGES[@]}"
 
-# === SSH ===
-draw_progress "Installing SSH..."
-pacinstall openssh
-
-# === LESS ===
-draw_progress "Installing less..."
-pacinstall less
-
-# === FZF ===
-draw_progress "Installing fzf..."
-pacinstall fzf
-
-# === BTOP ===
-draw_progress "Installing btop..."
-pacinstall btop
-
-# === SNAPPY-SWITCHER ===
-draw_progress "Installing snappy-switcher..."
-yayinstall snappy-switcher
-
-# === VALENT ===
-draw_progress "Installing valent..."
-yayinstall valent
 
 # When the setup is complete, go into hyprland
 draw_progress "Cleaning up..."
