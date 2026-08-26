@@ -189,13 +189,15 @@ cp .config/starship.toml "$CONFIG_DIR/"
 # === YAY ===
 draw_progress "Installing yay..."
 pacinstall --needed base-devel go
-if [[ $DEBUG -eq 1 ]]; then
-    git clone https://aur.archlinux.org/yay.git /tmp/yay
-    (cd /tmp/yay && makepkg -si)
-else
-    git clone https://aur.archlinux.org/yay.git /tmp/yay > /dev/null 2>&1
-    (cd /tmp/yay && makepkg -si --noconfirm > /dev/null 2>&1)
-fi
+git clone https://aur.archlinux.org/yay.git /tmp/yay
+(
+    cd /tmp/yay
+    if [[ $DEBUG -eq 1 ]]; then
+        makepkg -si
+    else
+        makepkg -si --noconfirm > /dev/null 2>&1
+    fi
+)
 rm -rf /tmp/yay
 
 YAY_PACKAGES=(
