@@ -119,6 +119,7 @@ PACMAN_PACKAGES=(
 	less
 	fzf
 	btop
+	man-db tldr bat
 	# 1password dep
 	jq
 )

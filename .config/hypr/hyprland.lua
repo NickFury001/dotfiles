@@ -324,7 +324,7 @@ hl.bind("XF86AudioPlay",  hl.dsp.exec_cmd("playerctl play-pause"), { locked = tr
 hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = true })
 
 -- Screenshot utilities
--- hl.bind("Print", hl.dsp.exec_cmd('grim - | swappy -f -'))
+hl.bind("Print", hl.dsp.exec_cmd('mark-shot --fullscreen'))
 hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd('mark-shot'))
 
 -- Screen Recording Utilities

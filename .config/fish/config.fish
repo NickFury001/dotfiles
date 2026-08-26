@@ -4,6 +4,7 @@ if status is-interactive
     set -gx EDITOR nvim
     set -gx VISUAL nvim
     set -x BROWSER qutebrowser
+    set -gx MANPAGER "sh -c 'col -bx | bat -l man -p'"
     fastfetch
 end
 
