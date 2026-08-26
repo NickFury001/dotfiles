@@ -17,7 +17,7 @@ if [[ "$1" == "--debug" ]]; then
 fi
 
 # Set the total number of steps to calculate the percentage
-TOTAL_STEPS=21
+TOTAL_STEPS=22
 CURRENT_STEP=0
 
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}"
@@ -195,6 +195,10 @@ pacinstall btop
 # === SNAPPY-SWITCHER ===
 draw_progress "Installing snappy-switcher..."
 yayinstall snappy-switcher
+
+# === VALENT ===
+draw_progress "Installing valent..."
+yayinstall valent
 
 # When the setup is complete, go into hyprland
 draw_progress "Cleaning up..."
