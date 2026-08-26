@@ -1,7 +1,7 @@
 #!/bin/bash
 # Tip: Start with a blank arch
 
-set -euo pipefail
+# # # set -euo pipefail
 
 if [[ ! -d .config || ! -d Ricing ]]; then
     echo "Error: Run this script from the root of the dotfiles repository."
