@@ -124,8 +124,8 @@ pacinstall "${PACMAN_PACKAGES[@]}"
 draw_progress "Configuring Fastfetch..."
 mkdir -p "$CONFIG_DIR/fastfetch"
 cp .config/fastfetch/config.jsonc "$CONFIG_DIR/fastfetch/"
-mkdir -p "$HOME/Ricing/Custom\ Icons/"
-cp Ricing/Custom\ Icons/Arch_Linux_2D_Icon.png "$HOME/Ricing/Custom\ Icons/"
+mkdir -p "$HOME/Ricing/Custom Icons/"
+cp Ricing/Custom Icons/Arch_Linux_2D_Icon.png "$HOME/Ricing/Custom Icons/"
 
 # === FISH ===
 draw_progress "Configuring Fish..."
