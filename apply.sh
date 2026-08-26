@@ -97,7 +97,7 @@ fi
 
 # === HYPRLAND ===
 draw_progress "Installing Hyprland..."
-pacinstall hyprland hyprlauncher
+pacinstall hyprland hyprlauncher hyprpolkitagent xdg-desktop-portal-hyprland
 mkdir -p "$CONFIG_DIR/hypr"
 cp .config/hypr/hyprland.lua "$CONFIG_DIR/hypr/"
 
