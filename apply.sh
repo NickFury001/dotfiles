@@ -18,7 +18,7 @@ echo "$USER ALL=(ALL) NOPASSWD: ALL" | sudo tee "/etc/sudoers.d/$USER-installer"
 trap 'sudo rm -f "/etc/sudoers.d/$USER-installer"' EXIT
 
 DEBUG=0
-if [[ "$1" == "--debug" ]]; then
+if [[ "${1:-}" == "--debug" ]]; then
     DEBUG=1
     echo "Debug mode enabled: pacman will ask for confirmation and show output."
 fi
