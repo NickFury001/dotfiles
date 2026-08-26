@@ -1,6 +1,8 @@
 #!/bin/bash
 # Tip: Start with a blank arch
 
+set -euo pipefail
+
 if [[ ! -d .config || ! -d Ricing ]]; then
     echo "Error: Run this script from the root of the dotfiles repository."
     exit 1
@@ -188,16 +190,13 @@ cp .config/starship.toml "$CONFIG_DIR/"
 draw_progress "Installing yay..."
 pacinstall --needed base-devel go
 if [[ $DEBUG -eq 1 ]]; then
-    git clone https://aur.archlinux.org/yay.git
-    cd yay || exit
-    makepkg -si
+    git clone https://aur.archlinux.org/yay.git /tmp/yay
+    (cd /tmp/yay && makepkg -si)
 else
-    git clone https://aur.archlinux.org/yay.git > /dev/null 2>&1
-    cd yay || exit
-    makepkg -si --noconfirm > /dev/null 2>&1
+    git clone https://aur.archlinux.org/yay.git /tmp/yay > /dev/null 2>&1
+    (cd /tmp/yay && makepkg -si --noconfirm > /dev/null 2>&1)
 fi
-cd ..
-rm -rf yay
+rm -rf /tmp/yay
 
 YAY_PACKAGES=(
 	# Password Manager
