@@ -1,6 +1,11 @@
 #!/bin/bash
 # Tip: Start with a blank arch
 
+if [[ ! -d .config || ! -d Ricing ]]; then
+    echo "Error: Run this script from the root of the dotfiles repository."
+    exit 1
+fi
+
 # Authenticate upfront
 sudo -v
 
