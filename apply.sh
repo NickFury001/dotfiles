@@ -21,6 +21,7 @@ TOTAL_STEPS=13
 CURRENT_STEP=0
 
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}"
+HOME_DIR="$HOME"
 
 # Progress bar function suitable for TTY
 draw_progress() {
@@ -123,8 +124,8 @@ pacinstall "${PACMAN_PACKAGES[@]}"
 draw_progress "Configuring Fastfetch..."
 mkdir -p "$CONFIG_DIR/fastfetch"
 cp .config/fastfetch/config.jsonc "$CONFIG_DIR/fastfetch/"
-mkdir -p ~/Ricing/Custom\ Icons/
-cp Ricing/Custom\ Icons/Arch_Linux_2D_Icon.png ~/Ricing/Custom\ Icons/
+mkdir -p "$HOME/Ricing/Custom\ Icons/"
+cp Ricing/Custom\ Icons/Arch_Linux_2D_Icon.png "$HOME/Ricing/Custom\ Icons/"
 
 # === FISH ===
 draw_progress "Configuring Fish..."
@@ -146,8 +147,8 @@ cp .config/hypr/hyprland.lua "$CONFIG_DIR/hypr/"
 draw_progress "Configuring Hyprpaper..."
 mkdir -p "$CONFIG_DIR/hypr/"
 cp .config/hypr/hyprpaper.conf "$CONFIG_DIR/hypr/"
-mkdir -p ~/Ricing/Wallpapers
-cp Ricing/Wallpapers/Cedeira.jpg ~/Ricing/Wallpapers/
+mkdir -p "$HOME/Ricing/Wallpapers"
+cp Ricing/Wallpapers/Cedeira.jpg "$HOME/Ricing/Wallpapers/"
 
 # === KITTY ===
 draw_progress "Configuring Kitty..."
