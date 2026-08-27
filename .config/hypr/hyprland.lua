@@ -37,7 +37,7 @@ hl.monitor({
 -- Set programs that you use
 local terminal = "kitty"
 local fileManager = "kitty -o confirm_os_window_close=0 --hold spf"
-local menu = "hyprlauncher"
+local menu = "qs ipc call launcherRoot toggleVisibility"
 local browser = "qutebrowser --qt-flag disable-gpu"
 
 -------------------

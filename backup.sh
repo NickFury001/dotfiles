@@ -18,3 +18,5 @@ cp -r ~/.config/quickshell/. .config/quickshell/
 cp -r ~/.config/qutebrowser/userscripts/. .config/qutebrowser/userscripts/
 # === STARSHIP ===
 cp ~/.config/starship.toml .config/
+# === KEYD ===
+cp /etc/keyd/default.conf etc/keyd/default.conf
