@@ -191,6 +191,7 @@ cp .config/starship.toml "$CONFIG_DIR/"
 
 # === KEYD ===
 draw_progress "Configuring keyd..."
+mkdir -p /etc/keyd
 cp etc/keyd/default.conf /etc/keyd/default.conf
 
 # === YAY ===
