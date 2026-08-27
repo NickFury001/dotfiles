@@ -197,15 +197,17 @@ sudo cp etc/keyd/default.conf /etc/keyd/default.conf
 # === YAY ===
 draw_progress "Installing yay..."
 pacinstall --needed base-devel go
-git clone https://aur.archlinux.org/yay.git /tmp/yay
-(
-    cd /tmp/yay
-    if [[ $DEBUG -eq 1 ]]; then
-        makepkg -si
-    else
-        makepkg -si --noconfirm > /dev/null 2>&1
-    fi
-)
+if [[ $DEBUG -eq 1 ]]; then
+	git clone https://aur.archlinux.org/yay.git /tmp/yay
+else
+	git clone https://aur.archlinux.org/yay.git /tmp/yay > /dev/null 2>&1
+fi
+cd /tmp/yay
+if [[ $DEBUG -eq 1 ]]; then
+	makepkg -si
+else
+	makepkg -si --noconfirm > /dev/null 2>&1
+fi
 rm -rf /tmp/yay
 
 YAY_PACKAGES=(
