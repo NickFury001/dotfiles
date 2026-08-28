@@ -45,7 +45,9 @@ PanelWindow {
 			font.family: Theme.fontFamily
 			font.pixelSize: 30
 			Keys.onPressed: (event) => {
-				if (event.key === Qt.Key_Down) {
+				if (event.key === Qt.Key_Escape) {
+					launcherRoot.visible = false
+				} else if (event.key === Qt.Key_Down) {
 					resultsColumn.selectedItemIndex += 1
 				} else if (event.key === Qt.Key_Up) {
 					resultsColumn.selectedItemIndex -= 1
@@ -53,7 +55,7 @@ PanelWindow {
 					const regex = new RegExp(inputRoot.text.split('').join('.*'), 'i');
 					let idx = (resultsColumn.selectedItemIndex === -1) ? 0 : resultsColumn.selectedItemIndex
 					DesktopEntries.applications.values.filter(item => regex.test(item.name))[idx].execute()
-launcherRoot.visible = false
+					launcherRoot.visible = false
 				}
 				resultsColumn.selectedItemIndex = Math.max(-1, Math.min(resultsColumn.selectedItemIndex, 2))
 			}
