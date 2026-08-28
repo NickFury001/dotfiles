@@ -8,10 +8,10 @@ import qs.common
 PanelWindow {
 	id: launcherRoot
 	
-	visible: true
+	visible: false
 
 	implicitWidth: Hyprland.focusedMonitor.width / 4
-	implicitHeight: childrenRect.height
+	implicitHeight: 60+60*3
 
 	Rectangle {
 		id: background
@@ -26,11 +26,13 @@ PanelWindow {
 
 		anchors.fill: parent
 
-		TextArea {
+		TextField {
 			id: inputRoot
 
 			anchors.left: parent.left
 			anchors.right: parent.right
+
+			height: 60
 
 			color: "white"
 			background: Rectangle {
@@ -41,31 +43,86 @@ PanelWindow {
 
 			placeholderText: "Search..."
 			font.family: Theme.fontFamily
-			font.pixelSize: 20
+			font.pixelSize: 30
+			Keys.onPressed: (event) => {
+				if (event.key === Qt.Key_Down) {
+					resultsColumn.selectedItemIndex += 1
+				} else if (event.key === Qt.Key_Up) {
+					resultsColumn.selectedItemIndex -= 1
+				} else if (event.key === Qt.Key_Return) {
+					const regex = new RegExp(inputRoot.text.split('').join('.*'), 'i');
+					let idx = (resultsColumn.selectedItemIndex === -1) ? 0 : resultsColumn.selectedItemIndex
+					DesktopEntries.applications.values.filter(item => regex.test(item.name))[idx].execute()
+launcherRoot.visible = false
+				}
+			}
 		}
 
 		Column {
+			id: resultsColumn
+
+			property int selectedItemIndex: -1 // -1 means nothing selected
+
+			width: parent.width
+			height: Math.min(childrenRect.height, Hyprland.focusedMonitor.height * 0.7)
 			Repeater {
 				model: 3
-				Row {
-					padding: 10
-					Image {
-						width: 48
-						height: 48
-						smooth: true
-						fillMode: Image.PreserveAspectFit
-						source: {
-							const regex = new RegExp(inputRoot.text.split('').join('.*'), 'i');
-							const app = DesktopEntries.applications.values.filter(item => regex.test(item.name))[index];
-							return Quickshell.iconPath(app.icon)
+				Item {
+					width: resultsColumn.width
+					height: 60
+					Rectangle {
+						id: hoverBg
+						anchors.fill: parent
+						color: resultsColumn.selectedItemIndex == index ? "#333333" : "transparent"
+
+						states: [
+							State {
+								name: "hovered"
+								when: mouseArea.containsMouse
+								PropertyChanges {
+									target: hoverBg
+									color: "#333333"
+								}
+							}
+						]
+					}
+					Row {
+						anchors.fill: parent
+						padding: 10
+						Image {
+							width: 48
+							height: 48
+							smooth: true
+							fillMode: Image.PreserveAspectFit
+							source: {
+								const regex = new RegExp(inputRoot.text.split('').join('.*'), 'i');
+								const app = DesktopEntries.applications.values.filter(item => regex.test(item.name))[index];
+								return Quickshell.iconPath(app.icon)
+								// Inside your Quickshell code
+								function fuzzyFilter(query, listModel) {
+									const regex = new RegExp(query.split('').join('.*'), 'i');
+									return listModel.filter(item => regex.test(item.name));
+								}
+							}
+						}
+						Text {
+							color: "white"
+							text: {
+								const regex = new RegExp(inputRoot.text.split('').join('.*'), 'i');
+								const app = DesktopEntries.applications.values.filter(item => regex.test(item.name))[index];
+								return app.name
+							}
 						}
 					}
-					Text {
-						color: "white"
-						text: {
+					MouseArea {
+						id: mouseArea
+						anchors.fill: parent
+						hoverEnabled: true
+
+						onDoubleClicked: {
 							const regex = new RegExp(inputRoot.text.split('').join('.*'), 'i');
-							const app = DesktopEntries.applications.values.filter(item => regex.test(item.name))[index];
-							return app.name
+							DesktopEntries.applications.values.filter(item => regex.test(item.name))[index].execute()
+							launcherRoot.visible = false
 						}
 					}
 				}
