@@ -8,15 +8,14 @@ import qs.common
 Item {
 	id: bluetoothRoot
 
-	property bool hideIcons: true
+	property bool hideIcons: false
 
 	anchors.verticalCenter: parent.verticalCenter
 
 	height: parent.height
 	width: childrenRect.width
 
-	// TODO: Adjust visibility if the device doesn't support Bt and other edge cases
-	visible: true
+	visible: Bluetooth.adapters.values.length > 0
 
 	Row {
 		anchors.verticalCenter: parent.verticalCenter
@@ -78,12 +77,13 @@ Item {
 						break
 					}
 					if (Bluetooth.devices.values[index].batteryAvailable) {
+						text += " "
 						let batIcons = ["󰤾", "󰤿", "󰥀", "󰥁", "󰥂", "󰥃", "󰥄", "󰥅", "󰥆", "󰥈"]
-						let index = Math.min(0, Math.max(9, Math.floor(Bluetooth.devices[index].battery * 10)))
-						text += batIcons[index] + " "
+						let idx = Math.max(0, Math.min(9, Math.floor(Bluetooth.devices.values[index].battery * 10)))
+						text += batIcons[idx] + " "
 					}
 				}
-				color: bluetoothRoot.hideIcons ? "black" : "white"
+				color: (!Bluetooth.devices.values[index].connected || bluetoothRoot.hideIcons) ? "black" : "white"
 			}
 		}
 
@@ -93,8 +93,9 @@ Item {
 			anchors.verticalCenter: parent.verticalCenter
 			anchors.right: bluetoothRoot.right
 
-			text: "BT"
+			text: Bluetooth.devices.values.filter((e)=>{return e.connected}).length > 0 ? "󰂱" : "󰂯"
 			font.family: Theme.fontFamily
+			font.pixelSize: Theme.textIconSize
 			color: "white"
 		}
 	}
@@ -105,7 +106,6 @@ Item {
 		acceptedButtons: Qt.RightButton | Qt.LeftButton
 		onClicked: (mouse) => {
 			if (mouse.button === Qt.RightButton) {
-				Quickshell.execDetached(["notify-send", "Hello"])
 				bluetoothRoot.hideIcons = !bluetoothRoot.hideIcons
 			}
 		}
