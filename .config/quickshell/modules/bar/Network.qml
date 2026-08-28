@@ -89,9 +89,8 @@ Row {
 			acceptedButtons: Qt.RightButton | Qt.LeftButton
 
 			onClicked: (mouse) => {
-				console.log(mouse.button)
 				// Right Click ==> Show/Hide Network name
-				if (mouse.button == Qt.RightButton) {
+				if (mouse.button === Qt.RightButton) {
 					networkNameText.visible = !networkNameText.visible
 				}
 			}

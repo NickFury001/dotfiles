@@ -8,7 +8,7 @@ import qs.common
 PanelWindow {
 	id: launcherRoot
 	
-	visible: true
+	visible: false
 
 	Rectangle {
 		id: background

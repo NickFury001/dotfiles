@@ -20,3 +20,5 @@ cp -r ~/.config/qutebrowser/userscripts/. .config/qutebrowser/userscripts/
 cp ~/.config/starship.toml .config/
 # === KEYD ===
 cp /etc/keyd/default.conf etc/keyd/default.conf
+# === BLUETOOTH ===
+cp /etc/bluetooth/main.conf etc/bluetooth/main.conf

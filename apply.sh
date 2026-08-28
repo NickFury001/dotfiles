@@ -122,6 +122,10 @@ PACMAN_PACKAGES=(
 	man-db tldr bat
 	# Remaps
 	keyd
+	# Bluetooth
+	bluez
+	bluez-libs
+	bluez-utils
 	# 1password dep
 	jq
 )
@@ -193,6 +197,11 @@ cp .config/starship.toml "$CONFIG_DIR/"
 draw_progress "Configuring keyd..."
 sudo mkdir -p /etc/keyd
 sudo cp etc/keyd/default.conf /etc/keyd/default.conf
+
+# === BLUETOOTH ===
+draw_progress "Configuring bluetooth..."
+sudo mkdir -p /etc/bluetooth
+sudo cp etc/bluetooth/main.conf /etc/bluetooth/main.conf
 
 # === YAY ===
 draw_progress "Installing yay..."

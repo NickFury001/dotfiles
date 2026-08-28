@@ -4,35 +4,37 @@ import QtQuick.Layouts
 import qs.common
 
 PanelWindow {
-    id: root
+	id: root
 
-    anchors {
-        top: true
-        left: true
-        right: true
-    }
-    color: "black"
-    implicitHeight: 30
+	anchors {
+		top: true
+		left: true
+		right: true
+	}
 
-    // === LEFT SIDE ===
-    Row {
-        anchors.verticalCenter: parent.verticalCenter
-        spacing: Theme.spacingBetweenWidgets
+	color: "black"
+	implicitHeight: 30
 
-        Workspaces {}
-        AppIcons {}
-        ActiveTitle {}
-    }
+	// === LEFT SIDE ===
+	Row {
+		anchors.verticalCenter: parent.verticalCenter
+		spacing: Theme.spacingBetweenWidgets
 
-    // === RIGHT SIDE ===
-    Row {
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.right: parent.right
-        spacing: Theme.spacingBetweenWidgets
+		Workspaces {}
+		AppIcons {}
+		ActiveTitle {}
+	}
 
-        Network {}
-        Brightness {}
-        Battery {}
-        Clock {}
-    }
+	// === RIGHT SIDE ===
+	Row {
+		anchors.verticalCenter: parent.verticalCenter
+		anchors.right: parent.right
+		spacing: Theme.spacingBetweenWidgets
+
+		Bluetooth {}
+		Network {}
+		Brightness {}
+		Battery {}
+		Clock {}
+	}
 }
