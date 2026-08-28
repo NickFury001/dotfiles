@@ -55,6 +55,7 @@ PanelWindow {
 					DesktopEntries.applications.values.filter(item => regex.test(item.name))[idx].execute()
 launcherRoot.visible = false
 				}
+				resultsColumn.selectedItemIndex = Math.max(-1, Math.min(resultsColumn.selectedItemIndex, 2))
 			}
 		}
 
@@ -68,6 +69,15 @@ launcherRoot.visible = false
 			Repeater {
 				model: 3
 				Item {
+
+					visible: {
+						const regex = new RegExp(inputRoot.text.split('').join('.*'), 'i');
+						const apps = DesktopEntries.applications.values.filter(item => regex.test(item.name)).filter(function(item, pos, self) {
+							return self.indexOf(item) == pos;
+						})
+						return apps.length >= index+1
+					}
+
 					width: resultsColumn.width
 					height: 60
 					Rectangle {
@@ -89,6 +99,7 @@ launcherRoot.visible = false
 					Row {
 						anchors.fill: parent
 						padding: 10
+						spacing: 20
 						Image {
 							width: 48
 							height: 48
@@ -106,7 +117,10 @@ launcherRoot.visible = false
 							}
 						}
 						Text {
+							anchors.verticalCenter: parent.verticalCenter
 							color: "white"
+							font.family: Theme.fontFamily
+							font.pixelSize: 20
 							text: {
 								const regex = new RegExp(inputRoot.text.split('').join('.*'), 'i');
 								const app = DesktopEntries.applications.values.filter(item => regex.test(item.name))[index];
