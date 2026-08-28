@@ -19,7 +19,15 @@ Row {
 				if (!modelData || !modelData.wayland) return "";
 				let appId = modelData.wayland.appId;
 				if (!appId) return "";
-				let desktopEntry = DesktopEntries.heuristicLookup(appId);
+				// To bypass kitty's process icon if a TUI with an icon is running
+				let desktopEntry = DesktopEntries.byId(appId);
+				if (appId === "kitty") {
+					let title = modelData.title
+					let entryAttempt = DesktopEntries.byId(title.trim())
+					if (entryAttempt) {
+						desktopEntry = entryAttempt
+					}
+				}
 				if (desktopEntry) {
 					let iconPath = Quickshell.iconPath(desktopEntry.icon, true);
 					return iconPath;
