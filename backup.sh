@@ -3,7 +3,7 @@
 # === FASTFETCH ===
 cp ~/.config/fastfetch/config.jsonc .config/fastfetch/
 # === FISH ===
-cp ~/.config/fish/config.fish .config/fish/
+cp -r ~/.config/fish/. .config/fish/
 # === HYPRLAND ===
 cp ~/.config/hypr/hyprland.lua .config/hypr/
 # === HYPRPAPER ===

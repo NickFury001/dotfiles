@@ -144,7 +144,7 @@ cp Ricing/Custom\ Icons/Arch_Linux_2D_Icon.png "$HOME/Ricing/Custom Icons/"
 # === FISH ===
 draw_progress "Configuring Fish..."
 mkdir -p "$CONFIG_DIR/fish"
-cp .config/fish/config.fish "$CONFIG_DIR/fish/"
+cp -r .config/fish/. "$CONFIG_DIR/fish/"
 # Fix: chsh prompts for a password unless run as sudo
 if [[ $DEBUG -eq 1 ]]; then
     sudo chsh -s "$(command -v fish)" "$USER"

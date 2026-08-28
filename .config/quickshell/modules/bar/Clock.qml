@@ -1,5 +1,6 @@
 import Quickshell
 import QtQuick
+import qs.common
 
 Column {
 	id: clockRoot

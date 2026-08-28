@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Services.UPower
 import QtQuick
 import QtQuick.Controls
+import qs.common
 
 Item {
 	id: batteryRoot
@@ -26,7 +27,7 @@ Item {
 		visible: batteryHover.hovered
 
 		contentItem: Text {
-			font.family: root.fontFamily
+			font.family: Theme.fontFamily
 			text: {
 				let text = ""
 				text += Math.round(UPower.displayDevice.changeRate*100)/100
@@ -61,7 +62,7 @@ Item {
 			id: batteryIcon
 
 			color: "white"
-			font.family: root.fontFamily
+			font.family: Theme.fontFamily
 			font.pixelSize: 18
 
 			anchors.verticalCenter: parent.verticalCenter
@@ -80,7 +81,7 @@ Item {
 			id: batteryPercentageText
 
 			color: "white"
-			font.family: root.fontFamily
+			font.family: Theme.fontFamily
 
 			anchors.verticalCenter: parent.verticalCenter
 
@@ -91,7 +92,7 @@ Item {
 			id: profileIcon
 
 			color: "white"
-			font.family: root.fontFamily
+			font.family: Theme.fontFamily
 			font.pixelSize: 18
 
 			anchors.verticalCenter: parent.verticalCenter

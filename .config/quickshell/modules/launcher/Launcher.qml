@@ -8,7 +8,10 @@ import qs.common
 PanelWindow {
 	id: launcherRoot
 	
-	visible: false
+	visible: true
+
+	implicitWidth: Hyprland.focusedMonitor.width / 4
+	implicitHeight: childrenRect.height
 
 	Rectangle {
 		id: background
@@ -19,21 +22,55 @@ PanelWindow {
 		color: "black"
 	}
 
-	TextArea {
-		id: inputRoot
+	Column {
 
-		anchors.left: parent.left
-		anchors.right: parent.right
+		anchors.fill: parent
 
-		color: "white"
-		background: Rectangle {
-			anchors.fill: parent
-			border.color: "white"
-			color: "black"
+		TextArea {
+			id: inputRoot
+
+			anchors.left: parent.left
+			anchors.right: parent.right
+
+			color: "white"
+			background: Rectangle {
+				anchors.fill: parent
+				border.color: "white"
+				color: "black"
+			}
+
+			placeholderText: "Search..."
+			font.family: Theme.fontFamily
+			font.pixelSize: 20
 		}
-	
-		placeholderText: "Search..."
-		font.family: Theme.fontFamily
+
+		Column {
+			Repeater {
+				model: 3
+				Row {
+					padding: 10
+					Image {
+						width: 48
+						height: 48
+						smooth: true
+						fillMode: Image.PreserveAspectFit
+						source: {
+							const regex = new RegExp(inputRoot.text.split('').join('.*'), 'i');
+							const app = DesktopEntries.applications.values.filter(item => regex.test(item.name))[index];
+							return Quickshell.iconPath(app.icon)
+						}
+					}
+					Text {
+						color: "white"
+						text: {
+							const regex = new RegExp(inputRoot.text.split('').join('.*'), 'i');
+							const app = DesktopEntries.applications.values.filter(item => regex.test(item.name))[index];
+							return app.name
+						}
+					}
+				}
+			}
+		}
 	}
 
 	onVisibleChanged: {
