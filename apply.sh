@@ -24,7 +24,7 @@ if [[ "${1:-}" == "--debug" ]]; then
 fi
 
 # Set the total number of steps to calculate the percentage
-TOTAL_STEPS=15
+TOTAL_STEPS=16
 CURRENT_STEP=0
 
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}"
@@ -230,6 +230,7 @@ YAY_PACKAGES=(
 	valent
 )
 
+draw_progress "Installing AUR packages..."
 yayinstall "${YAY_PACKAGES[@]}"
 
 
