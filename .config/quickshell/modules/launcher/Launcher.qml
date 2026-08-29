@@ -42,6 +42,7 @@ PanelWindow {
 			}
 
 			placeholderText: "Search..."
+			placeholderTextColor: "grey"
 			font.family: Theme.fontFamily
 			font.pixelSize: 30
 			Keys.onPressed: (event) => {
