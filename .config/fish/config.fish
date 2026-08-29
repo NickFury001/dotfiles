@@ -15,3 +15,5 @@ if status is-login
         start-hyprland
     end
 end
+
+set PATH $PATH $HOME/.local/bin
