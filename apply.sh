@@ -90,8 +90,6 @@ PACMAN_PACKAGES=(
 	fish
 	# Window Manager
 	hyprland
-	# Launcher
-	hyprlauncher
 	# Polkit
 	hyprpolkitagent
 	# XDG Portal
@@ -114,6 +112,8 @@ PACMAN_PACKAGES=(
 	superfile
 	# Clipboard
 	wl-clipboard
+	wl-clip-persist
+	cliphist
 	# Other
 	openssh
 	less
@@ -128,6 +128,9 @@ PACMAN_PACKAGES=(
 	bluez-utils
 	# 1password dep
 	jq
+	# Screenshots and recordings
+	mark-shot
+	obs-studio
 )
 
 # === INSTALL PACMAN PACKAGES ===

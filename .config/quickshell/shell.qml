@@ -1,10 +1,12 @@
 import Quickshell
 import qs.modules.bar
 import qs.modules.notifications
-import qs.modules.launcher
+import qs.modules.launchers.appLauncher
+import qs.modules.launchers.clipboardLauncher
 
 Scope {
 	Bar {}
 	Notifications {}
-	Launcher {}
+	AppLauncher {}
+	ClipboardLauncher {}
 }

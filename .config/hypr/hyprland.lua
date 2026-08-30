@@ -38,7 +38,7 @@ hl.monitor({
 local terminal = "kitty"
 local fileManager = "kitty -o confirm_os_window_close=0 --hold spf"
 local menu = "qs ipc call launcherRoot toggleVisibility"
-local browser = "qutebrowser --qt-flag disable-gpu"
+local browser = "qutebrowser"
 
 -------------------
 ---- AUTOSTART ----
@@ -53,6 +53,8 @@ hl.on("hyprland.start", function ()
    hl.exec_cmd("hyprpaper")
    hl.exec_cmd("qs")
    hl.exec_cmd("wl-clip-persist --clipboard regular")
+   hl.exec_cmd("wl-paste --type text --watch cliphist store")
+   hl.exec_cmd("wl-paste --type image --watch cliphist store")
    hl.exec_cmd("snappy-switcher --daemon")
    hl.exec_cmd("systemctl --user start hyprpolkitagent")
    hl.exec_cmd("1password --silent")
