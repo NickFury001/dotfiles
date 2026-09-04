@@ -14,8 +14,6 @@ PanelWindow {
 	implicitHeight: 60+60*3
 
 	Rectangle {
-		id: background
-
 		anchors.fill: parent
 
 		border.color: "white"

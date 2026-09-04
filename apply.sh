@@ -24,7 +24,7 @@ if [[ "${1:-}" == "--debug" ]]; then
 fi
 
 # Set the total number of steps to calculate the percentage
-TOTAL_STEPS=16
+TOTAL_STEPS=17
 CURRENT_STEP=0
 
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}"
@@ -131,6 +131,8 @@ PACMAN_PACKAGES=(
 	# Screenshots and recordings
 	mark-shot
 	obs-studio
+	# Greeters
+	greetd
 )
 
 # === INSTALL PACMAN PACKAGES ===
@@ -205,6 +207,11 @@ sudo cp etc/keyd/default.conf /etc/keyd/default.conf
 draw_progress "Configuring bluetooth..."
 sudo mkdir -p /etc/bluetooth
 sudo cp etc/bluetooth/main.conf /etc/bluetooth/main.conf
+
+# === GREETERS ===
+draw_progress "Configuring greeters..."
+sudo mkdir -p /etc/greetd
+sudo cp etc/greetd /etc/greetd
 
 # === YAY ===
 draw_progress "Installing yay..."

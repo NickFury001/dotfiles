@@ -14,6 +14,7 @@ cp ~/.config/kitty/kitty.conf .config/kitty/
 cp -r ~/.config/nvim/. .config/nvim/
 # === QUICKSHELL ===
 cp -r ~/.config/quickshell/. .config/quickshell/
+cp -r /etc/greetd/. etc/greetd/
 # === QUTEBROWSER ===
 cp -r ~/.config/qutebrowser/userscripts/. .config/qutebrowser/userscripts/
 # === STARSHIP ===

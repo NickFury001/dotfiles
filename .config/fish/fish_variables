@@ -1,0 +1,5 @@
+# This file contains fish universal variable definitions.
+# VERSION: 3.0
+SETUVAR --export AQ_DRM_DEVICES:/dev/dri/card2
+SETUVAR --export LIBVA_DRIVER_NAME:iHD
+SETUVAR --export WLR_DRM_DEVICES:/dev/dri/card2

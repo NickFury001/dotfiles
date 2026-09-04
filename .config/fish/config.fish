@@ -6,6 +6,12 @@ if status is-interactive
     set -x BROWSER qutebrowser
     set -gx MANPAGER "sh -c 'col -bx | bat -l man -p'"
     set -gx TERMINAL kitty
+    set -Ux LIBVA_DRIVER_NAME iHD
+    # Force Aquamarine (Hyprland's backend) to only see Intel
+    set -Ux AQ_DRM_DEVICES /dev/dri/card2
+
+    # Catch older wlroots dependencies and Xwayland just in case
+    set -Ux WLR_DRM_DEVICES /dev/dri/card2
     fastfetch
 end
 

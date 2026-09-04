@@ -59,6 +59,7 @@ hl.on("hyprland.start", function ()
    hl.exec_cmd("systemctl --user start hyprpolkitagent")
    hl.exec_cmd("1password --silent")
    hl.exec_cmd("hyprlauncher --daemon")
+   hl.exec_cmd("valent --gapplication-service")
 --   hl.exec_cmd("at ~/.local/share/kpc_pass.txt | keepassxc --minimized --pw-stdin ~/KeePassXC/Passwords.kdbx")
 --   hl.exec_cmd(terminal)
 --   hl.exec_cmd("nm-applet")
@@ -75,7 +76,9 @@ end)
 hl.env("XCURSOR_SIZE", "24")
 hl.env("HYPRCURSOR_SIZE", "24")
 hl.env("ELECTRON_OZONE_PLATFORM_HINT", "auto")
-hl.env("WLR_DRM_DEVICES", "/dev/dri/card1")
+hl.env("XDG_SESSION_TYPE", "wayland")
+hl.env("GBM_BACKEND", "nvidia-drm")
+hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
 
 
 -----------------------
@@ -339,7 +342,7 @@ hl.bind(mainMod .. " + SHIFT + SPACE", hl.dsp.exec_cmd("1password --quick-access
 hl.bind("CTRL + ALT + SHIFT + DELETE", hl.dsp.exec_cmd("shutdown now"))
 
 -- Clipboard Utilities
-hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("noctalia msg panel-open clipboard"))
+hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("qs ipc call clipboardRoot toggleVisibility"))
 
 -- Window Switcher
 hl.bind("ALT + Tab", hl.dsp.exec_cmd("snappy-switcher --workspace next --mod alt"))
@@ -400,6 +403,7 @@ hl.window_rule({
 -- Fix XWayland Scaling
 hl.config({
     xwayland = {
-        force_zero_scaling = true
+        force_zero_scaling = true,
+	use_nearest_neighbor = false,
     }
 })

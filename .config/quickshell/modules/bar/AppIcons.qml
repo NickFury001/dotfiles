@@ -22,7 +22,7 @@ Row {
 				// To bypass kitty's process icon if a TUI with an icon is running
 				let desktopEntry = DesktopEntries.byId(appId);
 				if (appId === "kitty") {
-					let title = modelData.title
+					let title = modelData.title.split(" ")[0]
 					let entryAttempt = DesktopEntries.byId(title.trim())
 					if (entryAttempt) {
 						desktopEntry = entryAttempt
