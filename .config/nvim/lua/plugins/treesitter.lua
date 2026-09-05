@@ -7,7 +7,9 @@ return {
 			'lua',
 			'json',
 			'qmljs',
-			'java'
+			'java',
+			'markdown',
+			'markdown_inline'
 		}
 	end
 }
