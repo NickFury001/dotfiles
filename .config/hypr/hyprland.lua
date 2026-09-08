@@ -49,7 +49,7 @@ local browser = "qutebrowser"
 -- Autostart necessary processes (like notifications daemons, status bars, etc.)
 -- Or execute your favorite apps at launch like this:
 --
-hl.on("hyprland.start", function () 
+hl.on("hyprland.start", function ()
    hl.exec_cmd("hyprpaper")
    hl.exec_cmd("qs")
    hl.exec_cmd("wl-clip-persist --clipboard regular")
@@ -336,7 +336,7 @@ hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd('mark-shot'))
 hl.bind(mainMod .. " + R", hl.dsp.send_shortcut({ mods = "CTRL_SHIFT_ALT", key = "R", window = "class:^(com\\.obsproject\\.Studio)$" }))
 
 -- 1Password Integration
-hl.bind(mainMod .. " + SHIFT + SPACE", hl.dsp.exec_cmd("1password --quick-access"))
+hl.bind("CTRL + SHIFT + SPACE", hl.dsp.exec_cmd("1password --quick-access"))
 
 -- Shutdown hook
 hl.bind("CTRL + ALT + SHIFT + DELETE", hl.dsp.exec_cmd("shutdown now"))

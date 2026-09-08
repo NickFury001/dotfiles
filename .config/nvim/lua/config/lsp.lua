@@ -35,3 +35,9 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
 -- Recommended options for visual layout
 vim.opt.completeopt = { 'menu', 'menuone', 'noinsert', 'fuzzy', 'popup' }
+
+vim.diagnostic.config({
+	underline = true,
+	update_in_insert = true,
+	virtual_text = true
+})

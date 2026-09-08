@@ -23,3 +23,5 @@ cp ~/.config/starship.toml .config/
 cp /etc/keyd/default.conf etc/keyd/default.conf
 # === BLUETOOTH ===
 cp /etc/bluetooth/main.conf etc/bluetooth/main.conf
+# === MIMETYPES ===
+cp ~/.config/mimeapps.list .config/

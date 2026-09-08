@@ -133,6 +133,10 @@ PACMAN_PACKAGES=(
 	obs-studio
 	# Greeters
 	greetd
+	# PDF Viewer
+	zathura
+	zathura-pdf-mupdf
+	tesseract-data-eng
 )
 
 # === INSTALL PACMAN PACKAGES ===

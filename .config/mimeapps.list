@@ -1,0 +1,92 @@
+[Default Applications]
+x-scheme-handler/jetbrains=jetbrainsd.desktop
+
+# Browser
+text/html=org.qutebrowser.qutebrowser.desktop
+application/xhtml+xml=org.qutebrowser.qutebrowser.desktop
+x-scheme-handler/http=org.qutebrowser.qutebrowser.desktop
+x-scheme-handler/https=org.qutebrowser.qutebrowser.desktop
+x-scheme-handler/about=org.qutebrowser.qutebrowser.desktop
+x-scheme-handler/unknown=org.qutebrowser.qutebrowser.desktop
+
+# Images (you already install qview)
+image/png=qview.desktop
+image/jpeg=qview.desktop
+image/jpg=qview.desktop
+image/gif=qview.desktop
+image/webp=qview.desktop
+image/svg+xml=qview.desktop
+image/bmp=qview.desktop
+image/tiff=qview.desktop
+
+# PDF / documents (pick one; zathura or okular are common)
+application/pdf=org.pwmt.zathura.desktop
+
+# Text / code
+text/plain=nvim.desktop
+text/x-shellscript=nvim.desktop
+application/x-shellscript=nvim.desktop
+text/markdown=nvim.desktop
+
+# Audio / Video (mpv is a solid default)
+audio/mpeg=mpv.desktop
+audio/flac=mpv.desktop
+audio/ogg=mpv.desktop
+video/mp4=mpv.desktop
+video/x-matroska=mpv.desktop
+video/webm=mpv.desktop
+
+# Archives (optional)
+application/zip=org.gnome.FileRoller.desktop
+application/x-rar=org.gnome.FileRoller.desktop
+application/x-7z-compressed=org.gnome.FileRoller.desktop
+
+# Directories (your file manager)
+inode/directory=spf.desktop   # or whatever the desktop file for superfile is named
+
+[Added Associations]
+# Optional: keep extra apps available in # Browser
+text/html=org.qutebrowser.qutebrowser.desktop
+application/xhtml+xml=org.qutebrowser.qutebrowser.desktop
+x-scheme-handler/http=org.qutebrowser.qutebrowser.desktop
+x-scheme-handler/https=org.qutebrowser.qutebrowser.desktop
+x-scheme-handler/about=org.qutebrowser.qutebrowser.desktop
+x-scheme-handler/unknown=org.qutebrowser.qutebrowser.desktop
+
+# Images (you already install qview)
+image/png=qview.desktop
+image/jpeg=qview.desktop
+image/jpg=qview.desktop
+image/gif=qview.desktop
+image/webp=qview.desktop
+image/svg+xml=qview.desktop
+image/bmp=qview.desktop
+image/tiff=qview.desktop
+
+# PDF / documents (pick one; zathura or okular are common)
+application/pdf=org.pwmt.zathura.desktop
+
+# Text / code
+text/plain=nvim.desktop
+text/x-shellscript=nvim.desktop
+application/x-shellscript=nvim.desktop
+text/markdown=nvim.desktop
+
+# Audio / Video (mpv is a solid default)
+audio/mpeg=mpv.desktop
+audio/flac=mpv.desktop
+audio/ogg=mpv.desktop
+video/mp4=mpv.desktop
+video/x-matroska=mpv.desktop
+video/webm=mpv.desktop
+
+# Archives (optional)
+application/zip=org.gnome.FileRoller.desktop
+application/x-rar=org.gnome.FileRoller.desktop
+application/x-7z-compressed=org.gnome.FileRoller.desktop
+
+# Directories (your file manager)
+inode/directory=spf.desktop   # or whatever the desktop file for superfile is named
+
+[Added Associations]
+# Optional: keep extra apps available in "Open With""Open With"
