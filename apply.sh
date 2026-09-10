@@ -215,7 +215,7 @@ sudo cp etc/bluetooth/main.conf /etc/bluetooth/main.conf
 # === GREETERS ===
 draw_progress "Configuring greeters..."
 sudo mkdir -p /etc/greetd
-sudo cp etc/greetd /etc/greetd
+sudo cp -r etc/greetd /etc/greetd
 
 # === YAY ===
 draw_progress "Installing yay..."
