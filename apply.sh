@@ -137,6 +137,10 @@ PACMAN_PACKAGES=(
 	zathura
 	zathura-pdf-mupdf
 	tesseract-data-eng
+	# Editor
+	neovim lua-language-server tree-sitter-cli
+	# C/C++
+	clang cmake bear lldb
 )
 
 # === INSTALL PACMAN PACKAGES ===
